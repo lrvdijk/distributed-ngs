@@ -1,0 +1,48 @@
+\documentclass[a4paper,article,oneside]{memoir}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{placeins}
+
+\setlength{\parindent}{0pt}
+\nonzeroparskip
+
+\title{\huge{\textsc{Distributed Next Generation Sequencing}}\\\Large{Lab Assignment for Distributed Computing Systems}}
+\author{Tycho Marinus\\4512014 \and Lucas van Dijk\\1537725}
+
+
+\begin{document}
+\maketitle
+
+\chapter{Assignment}
+
+In the past few years sequencing the genome has become a lot cheaper, due to next generation sequencing techniques. It is now a lot more viable to sequence the genome of a new patient, and for example compare it to a known reference genome. The human genome consists of three billion base pairs, and some plant genomes are sometimes an order of magnitude larger. So we are dealing with a huge amount of data, and the algorithms for mapping short reads on the reference genome, alignment, or de novo genome assembly can be quite computationally heavy. Furthermore, if you have mapped your reads to a reference genome, you will probably want to perform several kinds of analysis on your newly sequenced genome, for example check if there are any genes different compared to the reference. 
+
+Because you retrieve a lot of individual short reads from your sequencing step, you can map and align these reads independently to a reference genome. Thus, there are lot of possibilities for parallel computation. The idea is now to build a distributed system to handle this next generation sequencing pipeline, to perform some of this assembly and mapping algorithms in parallel. It would also need a system to efficiently manage the enormous datasets, and let researchers add annotations to a assembled genome. Decap et al. already built a similar system using Hadoop \cite{decap2015halvade}.
+
+\chapter{Requirements}
+
+\section{Must have}
+
+\begin{itemize}
+    \item Built a distributed system which implements a variant calling pipeline with the Genome Analysis Toolkit, according to known best practices \cite{auwera2013fastq}.
+    \item Handle multiple requests to perform mapping, alignment or variant calling. 
+    \item Fault tolerant, when one of the nodes crashes it should not hinder the final resuilts
+    \item Scalable: it should handle genomes the size of a human (3 billion base pairs), but also the genome of a \textit{Paris japonica} (150 billion base pairs).
+\end{itemize}
+
+\section{Could have}
+
+\begin{itemize}
+    \item Multi-tenancy: let multiple teams perform different actions simultanuously
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{../dcs}
+
+
+\end{document}
