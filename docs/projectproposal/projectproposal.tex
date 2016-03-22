@@ -22,23 +22,68 @@
 
 In the past few years sequencing the genome has become a lot cheaper, due to next generation sequencing techniques. It is now a lot more viable to sequence the genome of a new patient, and for example compare it to a known reference genome. The human genome consists of three billion base pairs, and some plant genomes are sometimes an order of magnitude larger. So we are dealing with a huge amount of data, and the algorithms for mapping short reads on the reference genome, alignment, or de novo genome assembly can be quite computationally heavy. Furthermore, if you have mapped your reads to a reference genome, you will probably want to perform several kinds of analysis on your newly sequenced genome, for example check if there are any genes different compared to the reference. 
 
-Because you retrieve a lot of individual short reads from your sequencing step, you can map and align these reads independently to a reference genome. Thus, there are lot of possibilities for parallel computation. The idea is now to build a distributed system to handle this next generation sequencing pipeline, to perform some of this assembly and mapping algorithms in parallel. It would also need a system to efficiently manage the enormous datasets, and let researchers add annotations to a assembled genome. Decap et al. already built a similar system using Hadoop \cite{decap2015halvade}.
+Because you retrieve a lot of individual short reads from your sequencing step, you can map and align these reads independently to a reference genome. Thus, there are lot of possibilities for parallel computation. The idea is now to build a distributed system to handle this next generation sequencing pipeline, to perform some of this assembly and mapping algorithms in parallel, distributed over a set of ``computational super nodes''. This also brings the challenge to efficiently manage the corresponding datasets. Decap et al. already built a similar system using Hadoop \cite{decap2015halvade}.
+
+In this assignment we will focus on the distributed system, and initially only implement a subset of the steps instead of the whole NGS pipeline.
+
+\chapter{Use Cases}
+
+In this section we discuss the following two use cases we have in mind for our distributed system: first a use case where the ``life science'' group in your organisation has performed a sequencing experiment, and you want to reliably store this data, the second use case being the bioinformatics group wanting to perform some analysis on this data.
+
+\section{Use Case 1: store the data of a sequencing experiment}
+
+The biological lab work is often done by a different group than the group performing the actual analysis on the data. Although the costs of sequencing have dropped dramatically recently, it's still relatively expensive (\$1000 dollar per experiment). The data coming from such experiment should be stored for later analysis. 
+
+This brings the following challenges:
+
+\begin{itemize}
+    \item The huge amount of data: a human genome with 60x read coverage depth can occupy easily 200 GB in its compressed FASTQ file format.
+    \item The data needs to be stored persistently and reliably.
+    \item The data needs to be accessible by other teams
+    \item Analysis and other actions need to be performed on this dataset, and the results should be stored too.
+\end{itemize}
+
+\section{Use Case 2: perform analyses and apply other bioinformatics software on the data}
+
+When the data is safely stored in the database, an organisation probably wants to analyse this data. For example, map individual reyds to a reference genome or locally align them, assemble a new genome from the individual reads, or check if this newly sequenced genome has any variant genes compared to the reference.
+
+Most of these operations can take a lot of time, but due to the nature of the sequencing experiment (you get a lot of independent reads), it is possible to perform a lot of steps at the same time, but on different chunks of the data. Building a scalable distributed system for these kinds of pipelines could reduce the computational time significantly.
 
 \chapter{Requirements}
 
 \section{Must have}
 
 \begin{itemize}
-    \item Built a distributed system which implements a variant calling pipeline with the Genome Analysis Toolkit, according to known best practices \cite{auwera2013fastq}.
-    \item Handle multiple requests to perform mapping, alignment or variant calling. 
-    \item Fault tolerant, when one of the nodes crashes it should not hinder the final resuilts
+    \item Built a distributed system which implements a subset of the steps of a NGS pipeline: Burrows-Wheeler alignment and local alignment on independent reads, keeping the known best practices in mind \cite{auwera2013fastq}.
+    \item The data must be stored safely and reliably.
+    \item Fault tolerant, when one of the nodes crashes it should not hinder the final results.
     \item Scalable: it should handle genomes the size of a human (3 billion base pairs), but also the genome of a \textit{Paris japonica} (150 billion base pairs).
+\end{itemize}
+
+\section{Should have}
+
+\begin{itemize}
+    \item Different scheduling policies for different workloads
+    \item Multi-tenancy: let multiple teams perform different actions simultaneously.
 \end{itemize}
 
 \section{Could have}
 
 \begin{itemize}
-    \item Multi-tenancy: let multiple teams perform different actions simultanuously
+    \item Data-ownership: who can see which datasets
+\end{itemize}
+
+\chapter{Preliminary system design}
+
+The idea is to built a distributed system with a multi-cluster centralized scheduling architecture. 
+
+We are thinking about a system with the following properties:
+
+\begin{itemize}
+    \item Distinguish between data nodes and computational nodes.
+    \item Have one or more ``data managers'' which act as index for your data, and determines where to store new data. 
+    \item Have one or more ``computational managers'' which manages the load balancing between the available computational nodes.
+    \item Clients connect with one of the managers depending on their application.
 \end{itemize}
 
 \bibliographystyle{plain}
