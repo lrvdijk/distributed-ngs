@@ -1,0 +1,3 @@
+
+class InvalidActionError(Exception):
+    pass
