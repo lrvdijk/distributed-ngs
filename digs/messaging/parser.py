@@ -10,6 +10,7 @@ class DigsParser:
         self.handlers = collections.defaultdict(list)
 
     def parse(self, data: bytes):
+        print("Parse")
         data = data.decode()  # encoding should be utf-8
 
         action, json_data = data.strip().split(maxsplit=1)
@@ -21,13 +22,13 @@ class DigsParser:
 
         payload = json.loads(json_data)
         # TODO: validate JSON schema for this action
-
         return action, payload, self.handlers[action]
 
     def define_action(self, action, json_schema):
         self.actions[action] = json_schema
 
     def register_handler(self, action, handler=None):
+        print("Register handler")
         if action not in self.actions:
             raise InvalidActionError(
                 "Trying to register a handler for an undefined "

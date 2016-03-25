@@ -8,8 +8,8 @@ from digs.manager import ManagerServerProtocol
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-h', '--hostname', default="localhost",
-        help="Hostname to listen on, default localhost"
+        '-hn', '--hostname', default="localhost",
+        help='Hostname to listen on, default localhost'
     )
     parser.add_argument(
         '-p', '--port', type=int, default=31415,
