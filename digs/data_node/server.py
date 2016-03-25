@@ -8,6 +8,8 @@ class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
     """
+    def __call__(self):
+        return self
 
     def connection_made(self, transport):
         """This function will be called by the asyncio event loop when a new
@@ -29,8 +31,10 @@ class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
         JSON."""
 
         print("Process")
+        print(self._stream_reader.readline())
+
         data = await self._stream_reader.readline()
-        action, payload, handlers = DigsParser.parse(data)
+        action, payload, handlers = DigsParser.parse(DigsParser(), data)
 
         for handler in handlers:
             self._loop.create_task(handler(self, payload))

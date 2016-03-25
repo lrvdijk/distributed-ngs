@@ -21,15 +21,17 @@ def main():
         help='Hostname to listen on, default localhost'
     )
     parser.add_argument(
-        '-p', '--port', type=int, default=5000,
-        help="Port to listen on, default 5000"
+        '-p', '--port', type=int, default=5001,
+        help="Port to listen on, default 5001"
     )
 
     args = parser.parse_args()
 
     loop = asyncio.get_event_loop()
     loop.set_debug(enabled=True)
-    coro = loop.create_server(DataNodeServerProtocol, args.hostname, args.port)
+    reader = asyncio.StreamReader(loop=loop)
+    data_protocol = DataNodeServerProtocol(reader)
+    coro = loop.create_server(data_protocol, args.hostname, args.port)
 
     server = loop.run_until_complete(coro)
     # loop.run_until_complete(server.wait_closed())
