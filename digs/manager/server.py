@@ -10,6 +10,10 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
     deserializes incoming data.
     """
 
+    def __init__(self, loop=None):
+        stream_reader = asyncio.StreamReader(loop=loop)
+        super().__init__(stream_reader, loop=loop)
+
     def connection_made(self, transport):
         """This function will be called by the asyncio event loop when a new
         client connects.
