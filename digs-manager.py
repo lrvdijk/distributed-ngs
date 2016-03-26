@@ -1,4 +1,3 @@
-import socket
 import asyncio
 import argparse
 import logging
@@ -11,8 +10,8 @@ from digs.manager import ManagerServerProtocol
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-s', '--hostname', default="127.0.0.1",
-        help="Hostname to listen on, default localhost"
+        '-hn', '--hostname', default="localhost",
+        help='Hostname to listen on, default localhost'
     )
     parser.add_argument(
         '-p', '--port', type=int, default=31415,
@@ -24,7 +23,6 @@ def main():
     )
 
     args = parser.parse_args()
-
 
     # TODO: database settings in configuration file?
     db.initialize_db("sqlite:///manager.db")

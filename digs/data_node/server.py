@@ -1,18 +1,15 @@
+from digs.messaging.parser import DigsParser
 import asyncio
 
-from digs.manager.parser import parser
 
-
-class ManagerServerProtocol(asyncio.StreamReaderProtocol):
-    """This class represents the TCP server protocol for a manager node.
+class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
+    """This class represents the TCP server protocol for a data node.
 
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
     """
-
-    def __init__(self, loop=None):
-        stream_reader = asyncio.StreamReader(loop=loop)
-        super().__init__(stream_reader, loop=loop)
+    def __call__(self):
+        return self
 
     def connection_made(self, transport):
         """This function will be called by the asyncio event loop when a new
@@ -22,7 +19,7 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
         :type transport: asyncio.BaseTransport
         """
         super().connection_made(transport)
-        print("connectionMade")
+        print("Connection Made")
         self._stream_writer = asyncio.StreamWriter(transport, self,
                                                    self._stream_reader,
                                                    self._loop)
@@ -33,8 +30,11 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
 
+        print("Process")
+        print(self._stream_reader.readline())
+
         data = await self._stream_reader.readline()
-        action, payload, handlers = parser.parse(data)
+        action, payload, handlers = DigsParser.parse(DigsParser(), data)
 
         for handler in handlers:
             self._loop.create_task(handler(self, payload))
