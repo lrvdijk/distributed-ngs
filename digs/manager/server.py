@@ -1,6 +1,9 @@
+import logging
 import asyncio
 
 from digs.manager.parser import parser
+
+logger = logging.getLogger(__name__)
 
 
 class ManagerServerProtocol(asyncio.StreamReaderProtocol):
@@ -22,7 +25,9 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
         :type transport: asyncio.BaseTransport
         """
         super().connection_made(transport)
-        print("connectionMade")
+        logger.debug("Client connected: %s", transport.get_extra_info(
+            'peername'))
+
         self._stream_writer = asyncio.StreamWriter(transport, self,
                                                    self._stream_reader,
                                                    self._loop)
