@@ -1,6 +1,6 @@
-from digs.messaging.parser import DigsParser
+from digs.messaging.protocol import DigsProtocolParser
 
-parser = DigsParser()
+parser = DigsProtocolParser()
 
 # TODO: Add JSON schema
 parser.define_action("store_data", None)

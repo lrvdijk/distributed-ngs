@@ -1,4 +1,4 @@
-from digs.messaging.parser import DigsParser
+from digs.messaging.protocol import DigsProtocolParser
 import asyncio
 
 
@@ -34,7 +34,7 @@ class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
         print(self._stream_reader.readline())
 
         data = await self._stream_reader.readline()
-        action, payload, handlers = DigsParser.parse(DigsParser(), data)
+        action, payload, handlers = DigsProtocolParser.parse(DigsProtocolParser(), data)
 
         for handler in handlers:
             self._loop.create_task(handler(self, payload))
