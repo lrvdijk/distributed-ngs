@@ -10,24 +10,16 @@ class DigsParser:
         self.handlers = collections.defaultdict(list)
 
     def parse(self, data):
-        print("Parse")
-        print(data)
         data = data.decode()  # encoding should be utf-8
-        print(data)
 
         action, json_data = data.strip().split(maxsplit=1)
-        print(action)
-        print(self.actions)
 
         if action not in self.actions:
             raise InvalidActionError(
                 "Trying to perform an unknown action '%s'" % action
             )
 
-        print("parse part 2")
-        print(json_data)
         payload = json.loads(json_data)
-        print(payload)
 
         # TODO: validate JSON schema for this action
         return action, payload, self.handlers[action]
