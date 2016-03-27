@@ -1,5 +1,6 @@
 from digs.messaging.protocol import DigsProtocolParser
 import asyncio
+import logging
 
 
 class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
@@ -8,6 +9,10 @@ class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
     """
+    def __init__(self, reader, node):
+        self.node = node
+        super(DataNodeServerProtocol, self).__init__(reader)
+
     def __call__(self):
         return self
 
@@ -35,6 +40,17 @@ class DataNodeServerProtocol(asyncio.StreamReaderProtocol):
 
         data = await self._stream_reader.readline()
         action, payload, handlers = DigsProtocolParser.parse(DigsProtocolParser(), data)
+
+        if action == 'chunk':
+            logging.debug(action)
+            response = self.node.get_chunk(payload)
+            print(response)
+            if response is None:
+                logging.debug("Should not happen during testing")
+            else:
+                print("kip")
+                await self._stream_writer.write(response)
+                print("kip2")
 
         for handler in handlers:
             self._loop.create_task(handler(self, payload))

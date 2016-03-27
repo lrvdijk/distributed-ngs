@@ -18,7 +18,7 @@ class DigsProtocolParser:
     """
 
     def __init__(self):
-        self.actions = {}
+        self.actions = {'chunk'}
         self.handlers = collections.defaultdict(list)
 
     def parse(self, data):
@@ -26,14 +26,13 @@ class DigsProtocolParser:
         data = data.decode()  # encoding should be utf-8
         logger.debug("Unicode string: %s", data)
         action, json_data = data.strip().split(maxsplit=1)
-
+        logger.debug(action)
         if action not in self.actions:
             raise InvalidActionError(
                 "Trying to perform an unknown action '%s'" % action
             )
-
         payload = json.loads(json_data)
-        logger.debug("JSON payload: %s", payload)
+        logger.debug("JSON payload line 35: %s", payload)
 
         # TODO: validate JSON schema for this action
         return action, payload, self.handlers[action]

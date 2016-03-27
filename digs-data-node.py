@@ -30,7 +30,7 @@ def main():
     loop = asyncio.get_event_loop()
     loop.set_debug(enabled=True)
     reader = asyncio.StreamReader(loop=loop)
-    data_protocol = DataNodeServerProtocol(reader)
+    data_protocol = DataNodeServerProtocol(reader, node)
     coro = loop.create_server(data_protocol, args.hostname, args.port)
 
     server = loop.run_until_complete(coro)
@@ -40,8 +40,6 @@ def main():
         loop.run_forever()
     except KeyboardInterrupt:
         pass
-
-    print("aap")
 
     # Close the server
     server.close()

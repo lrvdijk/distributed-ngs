@@ -8,13 +8,27 @@ def main():
 
     str = 'chunk '
     data = {}
-    data['parameters'] = "DataFiles/DataNodes/testFasta.data 236970 236981"
+    data['parameters'] = ["DataFiles/DataNodes/testFasta.data", "236970", "236981"]
     str = str + json.dumps(data)
     print(str)
     ServerSocket = socket.socket()
     ServerSocket.connect((host, port))
 
     ServerSocket.send(str.encode())
+    #
+    # MSGLEN = 3000
+    # chunks = []
+    # bytes_recd = 0
+    # while bytes_recd < MSGLEN:
+    #     chunk = ServerSocket.recv(min(MSGLEN - bytes_recd, 1024))
+    #     if chunk == b'':
+    #         print("Connection lost")
+    #         break
+    #     chunks.append(chunk)
+    #     bytes_recd = bytes_recd + len(chunk)
+    #
+    # result = b''.join(chunks)
+    # print("Result: " + result.decode())
     ServerSocket.close()
 
 
