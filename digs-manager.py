@@ -10,7 +10,7 @@ from digs.manager import ManagerServerProtocol
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-hn', '--hostname', default="localhost",
+        '-hn', '--hostname', default="127.0.0.1",
         help='Hostname to listen on, default localhost'
     )
     parser.add_argument(

@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from digs.manager.parser import parser
+from digs.manager.handlers import parser
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +34,16 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
 
         self._loop.create_task(self.process())
 
+    def eof_received(self):
+        # Close transport
+        return False
+
     async def process(self):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
 
         data = await self._stream_reader.readline()
-        action, payload, handlers = parser.parse(data)
+        action, handlers = parser.parse(data)
 
         for handler in handlers:
-            self._loop.create_task(handler(self, payload))
+            self._loop.create_task(handler(self, action))
