@@ -9,4 +9,4 @@ logger = logging.getLogger(__name__)
 async def locate_data(protocol, action):
     """This function handles a request from a client to store a new dataset."""
     logger.debug("locate_data call: %r, %r", protocol, action)
-    logger.debug("action values: %s", action.values)
+    logger.debug("action filenames: %s", action['filenames'])

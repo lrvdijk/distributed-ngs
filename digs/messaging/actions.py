@@ -112,6 +112,15 @@ class BaseAction:
 
         return self
 
+    def __getitem__(self, item):
+        if item not in self.fields:
+            raise KeyError(
+                "'{}' does not contain a field '{}'".format(
+                    self.__class__.__name__, item)
+            )
+
+        return self.values.get(item, None)
+
 
 class Action(BaseAction, metaclass=ActionsMeta):
     """Combine the functionality of the base action class with the
