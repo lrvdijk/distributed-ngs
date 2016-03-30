@@ -1,4 +1,4 @@
-from digs.data_node import data_handler
+from digs.data_node import handlers
 import json
 import socket
 #print(data_handler.get_data_chunk("DataFiles/DataNodes/testFasta.data", 236970, 236981))
@@ -6,9 +6,11 @@ def main():
     host = "localhost"
     port = 5001
 
-    str = 'chunk '
+    str = 'get_data_chunk '
     data = {}
-    data['parameters'] = ["DataFiles/DataNodes/testFasta.data", "236970", "236981"]
+    data['file_path'] = "DataFiles/DataNodes/testFasta.data"
+    data['chunk_start'] = 236970
+    data['chunk_end'] = 236981
     str = str + json.dumps(data)
     print(str)
     ServerSocket = socket.socket()
