@@ -11,7 +11,7 @@ parser.define_action(HeartBeat)
 class LocateData(Action):
     __action__ = 'locate_data'
 
-    filenames = list
+    file_id = int # data id
 
 
 @parser.define_action

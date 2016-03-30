@@ -6,11 +6,11 @@ def main():
     host = "localhost"
     port = 31415
 
-    str = 'get_data_chunk '
+    str = 'locate_data '
     data = {}
-    data['file_path'] = "DataFiles/DataNodes/testFasta.data"
-    data['chunk_start'] = 236970
-    data['chunk_end'] = 236981
+    data['file_id'] = 1
+    # data['chunk_start'] = 236970
+    # data['chunk_end'] = 236981
     str = str + json.dumps(data)
     print(str)
     ServerSocket = socket.socket()

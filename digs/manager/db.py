@@ -39,7 +39,6 @@ def initialize_db(connection_string):
 
 def create_tables():
     """Create all corresponding database tables subclassing from `ModelBase`."""
-    print('ta')
     ModelBase.metadata.create_all(engine)
     logger.debug('create')
     logger.debug(engine)
