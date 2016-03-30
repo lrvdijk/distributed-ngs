@@ -1,5 +1,9 @@
+import logging
+
 from digs.common.server import ServerProtocol
 from digs.manager.handlers import parser
+
+logger = logging.getLogger(__name__)
 
 
 class ManagerServerProtocol(ServerProtocol):
@@ -14,8 +18,17 @@ class ManagerServerProtocol(ServerProtocol):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
 
-        data = await self._stream_reader.readline()
-        action, handlers = parser.parse(data)
+        while True:
+            try:
+                data = await self._stream_reader.readline()
+                if self._stream_reader.at_eof():
+                    continue
 
-        for handler in handlers:
-            self._loop.create_task(handler(self, action))
+                logger.debug("process(): data %s", data)
+                action, handlers = parser.parse(data)
+
+                for handler in handlers:
+                    self._loop.create_task(handler(self, action))
+            except Exception as e:
+                logger.exception("Error while handling data from the client")
+                await self.error_handler(e)

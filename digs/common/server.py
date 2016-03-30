@@ -2,6 +2,8 @@ import logging
 import asyncio
 from abc import ABCMeta, abstractmethod
 
+from digs.common.actions import Error
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,9 +35,17 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
 
         self._loop.create_task(self.process())
 
+    async def error_handler(self, exc):
+        action = Error(kind=exc.__class__.__name__, message=str(exc))
+        return await self.send_action(action)
+
     def eof_received(self):
         # Close transport
         return False
+
+    async def send_action(self, action):
+        self._stream_writer.write(str(action).encode())
+        return await self._stream_writer.drain()
 
     @abstractmethod
     async def process(self):
