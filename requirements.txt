@@ -1,1 +1,2 @@
 sqlalchemy>=1.0
+aioamqp>=0.6
