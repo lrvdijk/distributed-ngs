@@ -14,21 +14,6 @@ class ManagerServerProtocol(ServerProtocol):
     deserializes incoming data.
     """
 
-    async def process(self):
-        """Proceed to parse the incoming data, and deserialize the incoming
-        JSON."""
-
-        while True:
-            try:
-                data = await self._stream_reader.readline()
-                if self._stream_reader.at_eof():
-                    continue
-
-                logger.debug("process(): data %s", data)
-                action, handlers = parser.parse(data)
-
-                for handler in handlers:
-                    self._loop.create_task(handler(self, action))
-            except Exception as e:
-                logger.exception("Error while handling data from the client")
-                await self.error_handler(e)
+    @property
+    def parser(self):
+        return parser

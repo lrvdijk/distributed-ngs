@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractproperty
 
 from digs.common.actions import Error
 
@@ -18,6 +18,12 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
         stream_reader = asyncio.StreamReader(loop=loop)
         super().__init__(stream_reader, loop=loop)
 
+        self.data_processor = None
+
+    @abstractproperty
+    def parser(self):
+        pass
+
     def connection_made(self, transport):
         """This function will be called by the asyncio event loop when a new
         client connects.
@@ -33,13 +39,14 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
                                                    self._stream_reader,
                                                    self._loop)
 
-        self._loop.create_task(self.process())
+        self.data_processor = self._loop.create_task(self.process())
 
     async def error_handler(self, exc):
         action = Error(kind=exc.__class__.__name__, message=str(exc))
         return await self.send_action(action)
 
     def eof_received(self):
+        self.data_processor.cancel()
         # Close transport
         return False
 
@@ -47,8 +54,25 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
         self._stream_writer.write(str(action).encode())
         return await self._stream_writer.drain()
 
-    @abstractmethod
     async def process(self):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
+
+        while True:
+            try:
+                data = await self._stream_reader.readline()
+                if self._stream_reader.at_eof():
+                    continue
+
+                logger.debug("process(): data %s", data)
+                action, handlers = self.parser.parse(data)
+
+                for handler in handlers:
+                    self._loop.create_task(handler(self, action))
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                logger.debug("Processing task cancelled.")
+                break
+            except Exception as e:
+                logger.exception("Error while handling data from the client")
+                await self.error_handler(e)
 

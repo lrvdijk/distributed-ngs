@@ -32,7 +32,10 @@ class DigsProtocolParser:
 
         # Check which action it tries to perform, and initialize the action
         # object (using values from the incoming JSON).
-        action, json_data = data.strip().split(maxsplit=1)
+        parts = data.strip().split(maxsplit=1)
+        action = parts[0]
+        json_data = parts[1] if len(parts) == 2 else "{}"
+
         if action not in self.actions:
             raise InvalidActionError(
                 "Trying to perform an unknown action '%s'" % action
