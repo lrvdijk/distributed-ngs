@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 class ManagerServerProtocol(asyncio.StreamReaderProtocol):
-    """This class represents the TCP server protocol for a manager node.
+    """This class represents the TCP server protocol for a manager node. For
+    each client connection a new instance of this class will be created.
 
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
@@ -18,8 +19,8 @@ class ManagerServerProtocol(asyncio.StreamReaderProtocol):
         super().__init__(stream_reader, loop=loop)
 
     def connection_made(self, transport):
-        """This function will be called by the asyncio event loop when a new
-        client connects.
+        """This function will be called by the asyncio event loop when the
+        connection with the new client has been established.
 
         :param transport: The transport object for this connection
         :type transport: asyncio.BaseTransport
