@@ -8,6 +8,14 @@ parser.define_action(HeartBeat)
 
 
 @parser.define_action
+class Announce(Action):
+    __action__ = 'announce'
+
+    hostname = str
+    type = str
+
+
+@parser.define_action
 class LocateData(Action):
     __action__ = 'locate_data'
 
