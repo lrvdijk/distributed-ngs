@@ -6,12 +6,16 @@ This module provides some helper functions to manage database connections
 and sessions.
 """
 
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 
+engine = None
 session_factory = sessionmaker()
-session = scoped_session(session_factory)  # TODO: define session scope
+Session = scoped_session(session_factory)  # TODO: define session scope
+
+ModelBase = declarative_base()
 
 
 def initialize_db(connection_string):
@@ -23,23 +27,12 @@ def initialize_db(connection_string):
     :type connection_string: str
     """
 
+    global engine
+
     engine = create_engine(connection_string)
-    session.configure(bind=engine)
+    Session.configure(bind=engine)
 
 
-def initialize_easy_db(connection_string):
-    """
-    Connect to database specified by connection string
-
-    :param connection_string: database to connect to
-    """
-    engine = create_engine(connection_string, echo=True)
-    metadata = MetaData()
-    data_entries = Table('data_entries', metadata, Column('id', Integer, primary_key=True), Column('path', String),)
-    metadata.create_all(engine)
-    # ins = data_entries.insert().values(path='DataFiles/DataNodes/testFasta.data')
-    # ins.compile().params
-
-    connection = engine.connect()
-    # connection.execute(ins)
-    return connection
+def create_tables():
+    """Create all corresponding database tables subclassing from `ModelBase`."""
+    ModelBase.metadata.create_all(engine)
