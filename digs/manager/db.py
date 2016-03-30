@@ -6,12 +6,13 @@ This module provides some helper functions to manage database connections
 and sessions.
 """
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.engine.url import URL
 import logging
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.engine.url import URL
+
+from digs.manager.models import ModelBase
 from settings import DATABASE
 
 logger = logging.getLogger(__name__)
@@ -19,8 +20,6 @@ logger = logging.getLogger(__name__)
 engine = None
 session_factory = sessionmaker()
 Session = scoped_session(session_factory)  # TODO: define session scope
-
-ModelBase = declarative_base()
 
 
 def initialize_db(connection_string):

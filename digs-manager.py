@@ -1,10 +1,9 @@
-import asyncio
 import argparse
+import asyncio
 import logging
 import warnings
 
-from digs import db
-from digs.manager import ManagerServerProtocol
+from digs.manager import ManagerServerProtocol, db
 
 
 def main():

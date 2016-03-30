@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from digs.db import ModelBase
+
+ModelBase = declarative_base()
 
 class DataNode(ModelBase):
     """Sqlalchemy deals model"""
