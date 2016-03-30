@@ -9,7 +9,12 @@ and sessions.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.engine.url import URL
+import logging
 
+from settings import DATABASE
+
+logger = logging.getLogger(__name__)
 
 engine = None
 session_factory = sessionmaker()
@@ -29,10 +34,14 @@ def initialize_db(connection_string):
 
     global engine
 
-    engine = create_engine(connection_string)
+    engine = create_engine(URL(**DATABASE))
     Session.configure(bind=engine)
 
 
 def create_tables():
     """Create all corresponding database tables subclassing from `ModelBase`."""
+    print('ta')
     ModelBase.metadata.create_all(engine)
+    logger.debug('create')
+    logger.debug(engine)
+

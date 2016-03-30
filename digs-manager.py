@@ -24,15 +24,17 @@ def main():
 
     args = parser.parse_args()
 
-    # TODO: database settings in configuration file?
-    db.initialize_db("sqlite:///manager.db")
-
     loop = asyncio.get_event_loop()
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
+
+    # TODO: database settings in configuration file?
+    db.initialize_db("sqlite:///manager.db")
+    db.create_tables()
+
 
     coro = loop.create_server(ManagerServerProtocol, args.hostname, args.port)
 

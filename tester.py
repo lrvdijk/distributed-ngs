@@ -4,7 +4,7 @@ import socket
 #print(data_handler.get_data_chunk("DataFiles/DataNodes/testFasta.data", 236970, 236981))
 def main():
     host = "localhost"
-    port = 5001
+    port = 31415
 
     str = 'get_data_chunk '
     data = {}
