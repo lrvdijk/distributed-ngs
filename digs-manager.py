@@ -4,7 +4,7 @@ import logging
 import warnings
 
 from digs import db
-from digs.manager import ManagerServerProtocol
+from digs.manager import ManagerTransientProtocol
 
 
 def main():
@@ -34,7 +34,7 @@ def main():
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
 
-    coro = loop.create_server(ManagerServerProtocol, args.hostname, args.port)
+    coro = loop.create_server(ManagerTransientProtocol, args.hostname, args.port)
 
     server = loop.run_until_complete(coro)
     print("Serving on {}".format(server.sockets[0].getsockname()))

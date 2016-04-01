@@ -1,14 +1,15 @@
 import logging
 import asyncio
-from abc import ABCMeta, abstractproperty
+from abc import abstractproperty
 
 from digs.common.actions import Error
+from digs.messaging.protocol import BaseProtocol
 
 logger = logging.getLogger(__name__)
 
 
-class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
-    """This class represents the TCP server protocol for a manager node.
+class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
+    """This class represents the TCP server protocol for any node.
 
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
@@ -58,11 +59,11 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
 
+        # TODO: add some keep-alive mechanism to automatically close
+        # connections idle for some time.
         while True:
             try:
                 data = await self._stream_reader.readline()
-                if self._stream_reader.at_eof():
-                    continue
 
                 logger.debug("process(): data %s", data)
                 action, handlers = self.parser.parse(data)
