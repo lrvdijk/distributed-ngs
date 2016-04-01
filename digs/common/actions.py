@@ -1,3 +1,4 @@
+from digs.messaging.serialization import Serializable
 from digs.messaging.actions import Action
 
 
@@ -12,3 +13,19 @@ class Error(Action):
 
     kind = str
     message = str
+
+
+class Job(Serializable):
+    program_name = str
+
+
+class JobRequest(Action):
+    __action__ = 'job_request'
+
+    job = Job
+
+
+class PerformJob(Action):
+    __action__ = 'perform_job'
+
+    job = Job
