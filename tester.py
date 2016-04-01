@@ -7,11 +7,12 @@ from digs.common.actions import HeartBeat
 
 
 def main():
-    str1 = 'get_all_data_locs '
+    str1 = 'request_data_chunks '
     data = {}
     data['file_id'] = 1
-    # data['chunk_start'] = 236970
-    # data['chunk_end'] = 236981
+    data['start'] = 0
+    data['end'] = 21
+    data['chunk_size'] = 6
     str1 = str1 + json.dumps(data) + '\n'
     print(str1)
 

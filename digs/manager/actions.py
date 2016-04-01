@@ -37,5 +37,5 @@ class RequestChunks(Action):
     file_id = int  # data id
     start = int # starting value for chunks
     end = int # end value of chunks
-    num_chunks = int # number of chunks
+    chunk_size = int # size of chunks
 
