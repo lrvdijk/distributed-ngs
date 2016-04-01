@@ -1,40 +1,39 @@
-from digs.data_node import handlers
-import json
+import sys
 import socket
-#print(data_handler.get_data_chunk("DataFiles/DataNodes/testFasta.data", 236970, 236981))
-def main():
-    host = "localhost"
-    port = 31415
+import time
+import json
 
-    str = 'get_all_data_locs '
+from digs.common.actions import HeartBeat
+
+
+def main():
+    str1 = 'get_all_data_locs '
     data = {}
     data['file_id'] = 1
     # data['chunk_start'] = 236970
     # data['chunk_end'] = 236981
-    str = str + json.dumps(data)
-    print(str)
-    ServerSocket = socket.socket()
-    ServerSocket.connect((host, port))
+    str1 = str1 + json.dumps(data) + '\n'
+    print(str1)
 
-    ServerSocket.send(str.encode())
+    if len(sys.argv) == 2:
+        host = sys.argv[0]
+        port = int(sys.argv[1])
+    else:
+        host = "127.0.0.1"
+        port = 31415
 
-    # get_all_data_locs {"file_id": 1}
-    # MSGLEN = 3000
-    # chunks = []
-    # bytes_recd = 0
-    # while bytes_recd < MSGLEN:
-    #     chunk = ServerSocket.recv(min(MSGLEN - bytes_recd, 1024))
-    #     if chunk == b'':
-    #         print("Connection lost")
-    #         break
-    #     chunks.append(chunk)
-    #     bytes_recd = bytes_recd + len(chunk)
-    #
-    # result = b''.join(chunks)dat wer
-    # print("Result: " + result.decode())
-    ServerSocket.close()
+    family, type, proto, _, addr = socket.getaddrinfo(
+        host, port, proto=socket.IPPROTO_TCP)[0]
+    # print(str(HeartBeat(time=time.time())))
+    sock = socket.socket(family, type, proto)
+    sock.settimeout(5)
+    sock.connect(addr)
+    sock.sendall(str1.encode())
 
+    data = sock.recv(4096)
+    print("[*] Received:", data)
 
+    sock.close()
 
 if __name__ == '__main__':
     main()

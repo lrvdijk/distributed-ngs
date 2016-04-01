@@ -27,7 +27,7 @@ async def locate_data(protocol, action):
 async def get_all_data_locs(protocol, action):
     """This function handles a request from a client to get_all_data_locations of a dataset."""
     session = Session()
-    logger.debug("locate_data call: %r, %r", protocol, action)
+    logger.debug("GetAllDataLocs call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
     results = []
     for row in session.query(DataLoc).filter_by(data_id=action['file_id']).all():
@@ -35,4 +35,22 @@ async def get_all_data_locs(protocol, action):
         results.append({'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
 
     result_str = 'locate_data_results ' + dumps(results)
-    print(result_str)
+    print(protocol)
+    protocol.send_action(result_str)
+
+    parser.register_handler(GetAllDataLocs)
+
+
+async def request_data_chunks(protocol, action):
+    """This function handles a request from a client to a list of chunk requests of a dataset."""
+    session = Session()
+    logger.debug("Get chunks call: %r, %r", protocol, action)
+    logger.debug("action filenames: %s", action['file_id'])
+    # results = []
+    # for row in session.query(DataLoc).filter_by(data_id=action['file_id']).all():
+    #     loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
+    #     results.append({'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
+    #
+    # result_str = 'locate_data_results ' + dumps(results)
+    # print(protocol)
+    # protocol.send_action(result_str)
