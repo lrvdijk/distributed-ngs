@@ -1,17 +1,19 @@
 from digs.messaging.protocol import DigsProtocolParser
 from digs.messaging.actions import Action
-from digs.common.actions import HeartBeat
+from digs.common.actions import HeartBeat, JobRequest
 
 parser = DigsProtocolParser()
 
 parser.define_action(HeartBeat)
+parser.define_action(JobRequest)
 
 
 @parser.define_action
-class LocateData(Action):
-    __action__ = 'locate_data'
+class Announce(Action):
+    __action__ = 'announce'
 
-    file_id = int # data id
+    hostname = str
+    type = str
 
 
 @parser.define_action
@@ -22,9 +24,7 @@ class GetAllDataLocs(Action):
 
 
 @parser.define_action
-class JobRequest(Action):
-    __action__ = 'job_request'
+class LocateData(Action):
+    __action__ = 'locate_data'
 
-    program = str  # program name
-    argument = str  # program command line arguments
-    dataset = int  # dataset id
+    file_id = int  # data id

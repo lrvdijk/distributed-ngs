@@ -1,12 +1,15 @@
 import logging
 import asyncio
-from abc import ABCMeta, abstractmethod
+from abc import abstractproperty
+
+from digs.common.actions import Error
+from digs.messaging.protocol import BaseProtocol
 
 logger = logging.getLogger(__name__)
 
 
-class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
-    """This class represents the TCP server protocol for a manager node.
+class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
+    """This class represents the TCP server protocol for any node.
 
     It handles the receiving a sending of messages, and automatically
     deserializes incoming data.
@@ -15,6 +18,12 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
     def __init__(self, loop=None):
         stream_reader = asyncio.StreamReader(loop=loop)
         super().__init__(stream_reader, loop=loop)
+
+        self.data_processor = None
+
+    @abstractproperty
+    def parser(self):
+        pass
 
     def connection_made(self, transport):
         """This function will be called by the asyncio event loop when a new
@@ -31,14 +40,40 @@ class ServerProtocol(asyncio.StreamReaderProtocol, metaclass=ABCMeta):
                                                    self._stream_reader,
                                                    self._loop)
 
-        self._loop.create_task(self.process())
+        self.data_processor = self._loop.create_task(self.process())
+
+    async def error_handler(self, exc):
+        action = Error(kind=exc.__class__.__name__, message=str(exc))
+        return await self.send_action(action)
 
     def eof_received(self):
+        self.data_processor.cancel()
         # Close transport
         return False
 
-    @abstractmethod
+    async def send_action(self, action):
+        self._stream_writer.write(str(action).encode())
+        return await self._stream_writer.drain()
+
     async def process(self):
         """Proceed to parse the incoming data, and deserialize the incoming
         JSON."""
+
+        # TODO: add some keep-alive mechanism to automatically close
+        # connections idle for some time.
+        while True:
+            try:
+                data = await self._stream_reader.readline()
+
+                logger.debug("process(): data %s", data)
+                action, handlers = self.parser.parse(data)
+
+                for handler in handlers:
+                    self._loop.create_task(handler(self, action))
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                logger.debug("Processing task cancelled.")
+                break
+            except Exception as e:
+                logger.exception("Error while handling data from the client")
+                await self.error_handler(e)
 

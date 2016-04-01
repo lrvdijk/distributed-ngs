@@ -17,7 +17,8 @@ def main():
     ServerSocket.connect((host, port))
 
     ServerSocket.send(str.encode())
-    #
+
+    # get_all_data_locs {"file_id": 1}
     # MSGLEN = 3000
     # chunks = []
     # bytes_recd = 0
@@ -29,7 +30,7 @@ def main():
     #     chunks.append(chunk)
     #     bytes_recd = bytes_recd + len(chunk)
     #
-    # result = b''.join(chunks)
+    # result = b''.join(chunks)dat wer
     # print("Result: " + result.decode())
     ServerSocket.close()
 
