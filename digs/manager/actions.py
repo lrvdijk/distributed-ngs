@@ -15,6 +15,13 @@ class LocateData(Action):
 
 
 @parser.define_action
+class GetAllDataLocs(Action):
+    __action__ = 'get_all_data_locs'
+
+    file_id = int # data id
+
+
+@parser.define_action
 class JobRequest(Action):
     __action__ = 'job_request'
 

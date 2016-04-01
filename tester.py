@@ -6,7 +6,7 @@ def main():
     host = "localhost"
     port = 31415
 
-    str = 'locate_data '
+    str = 'get_all_data_locs '
     data = {}
     data['file_id'] = 1
     # data['chunk_start'] = 236970
