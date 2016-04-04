@@ -1,5 +1,5 @@
-from digs.common.server import TransientProtocol
 from digs.data_node.handlers import parser
+from digs.messaging.transient import TransientProtocol
 
 
 class DataNodeTransientProtocol(TransientProtocol):

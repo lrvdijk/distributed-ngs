@@ -13,73 +13,116 @@ from abc import abstractproperty
 import aioamqp
 from aioamqp.channel import Channel
 
+from digs.exc import MessagingError
+from digs.messaging.actions import Action
 from digs.messaging.protocol import BaseProtocol, DigsProtocolParser
 
 logger = logging.getLogger(__name__)
 
 
 class PersistentProtocol(BaseProtocol):
-    def __init__(self, channel: Channel, exchange_name, topic, loop=None):
+    """An instance of this class is created each time a message is received
+    through the RabbitMQ queue.
+
+    It provides some helper functions for sending and parsing actions."""
+
+    def __init__(self, channel: Channel, body, envelope, properties,
+                 loop=None):
         self.channel = channel
-        self.default_exchange = exchange_name
-        self.default_topic = topic
-        self._loop = loop or asyncio.get_event_loop()
+        self.body = body
+        self.envelope = envelope
+        self.properties = properties
+
+        self._loop = loop
 
     @abstractproperty
     def parser(self) -> DigsProtocolParser:
         pass
 
-    def send_action(self, action, exchange=None, topic=None):
-        exchange = exchange if exchange is not None else self.default_exchange
-        topic = topic if topic is not None else self.default_topic
+    async def send_action(self, action: Action):
+        """If the received action contains a `reply_to` property,
+        this function can be used to send an action to this corresponding
+        RabbitMQ queue.
 
-        # TODO
-        self.channel.basic_publish()
+        :param action: The action to be sent as reply
+        """
 
-    async def process(self, channel, data, envelope, properties):
+        if not self.properties.reply_to:
+            raise MessagingError(
+                "Unable to send action {!r}, no reply to address "
+                "known.".format(action)
+            )
+
+        return await self.channel.basic_publish(
+            str(action),
+            exchange_name='',
+            routing_key=self.properties.reply_to,
+            properties={
+                'correlation_id': self.properties.correlation_id
+            }
+        )
+
+    async def process(self):
+        data = str(self.body)
         logger.debug("process(): data %s", data)
+
+        if len(data.strip()) == 0:
+            return
+
         action, handlers = self.parser.parse(data)
 
         for handler in handlers:
+            logger.debug("Scheduling handler %r", handler)
             self._loop.create_task(handler(self, action))
 
 
-async def get_channel(settings) -> Channel:
-    """Connect to the RabbitMQ server and create a channel.
+class PersistentListener:
+    def __init__(self, transport, protocol, channel,
+                 protocol_factory=PersistentProtocol, loop=None):
 
-    :param settings: dict like instance containing the rabbit mq server
-    settings
-    :type settings: dict
-    """
-    transport, protocol = aioamqp.connect(
-        settings.get('rabbitmq_host', 'localhost'),
-        int(settings.get('rabbitmq_port', 5672))
-    )
+        self.transport = transport
+        self.protocol = protocol
+        self.protocol_factory = protocol_factory
+        self._loop = loop if loop is not None else asyncio.get_event_loop()
 
-    return await protocol.channel()
+        self.channel = channel
 
+    async def listen_for(self, exchange, topic):
+        await self.channel.exchange(exchange, type_name='topic')
 
-async def persistent_messages_listener(settings, topic, protocol_factory,
-                                       loop=None):
-    channel = await get_channel(settings)
-    await channel.exchange(settings['messages_exchange_name'],
-                           type_name='topic')
+        # Exclusive queue with random name for this listener
+        queue = await self.channel.queue_declare(exclusive=True)
 
-    # Exclusive queue with random name for this listener
-    queue = await channel.queue_declare(exclusive=True)
+        # Bind queue to messages exchange, and listen to messages of given
+        # topic
+        await self.channel.queue_bind(queue['queue'], exchange, topic)
 
-    # Bind queue to messages exchange, and listen to messages of given topic
-    await channel.queue_bind(
-        queue['queue'], settings['messages_exchange_name'], topic)
+        while True:
+            try:
+                await self.channel.basic_consume(self._on_message,
+                                                 queue['queue'])
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                logger.debug("Persistent messaging listener cancelled")
+                break
+            except Exception:
+                logger.exception("Error while handling a message from the "
+                                 "queue")
 
-    protocol = protocol_factory(channel, settings['messages_exchange_name'],
-                                topic, loop)
+    async def _on_message(self, channel, body, envelope, properties):
+        protocol = self.protocol_factory(channel, body, envelope,
+                                         properties, self._loop)
 
-    while True:
-        try:
-            await channel.basic_consume(protocol.process, queue['queue'])
-        except (KeyboardInterrupt, asyncio.CancelledError):
-            logger.debug("Persistent messaging listener cancelled")
-            break
-        except Exception:
-            logger.exception("Error while handling data from the client")
+        self._loop.create_task(protocol.process())
+
+    async def wait_closed(self):
+        await self.protocol.close()
+        self.transport.close()
+
+async def create_persistent_listener(protocol_factory=PersistentProtocol,
+                                     *args, loop=None, **kwargs):
+    """Connect to RabbitMQ server"""
+    transport, protocol = await aioamqp.connect(*args, **kwargs)
+    channel = await protocol.channel()
+
+    return PersistentListener(transport, protocol, channel,
+                              protocol_factory, loop)

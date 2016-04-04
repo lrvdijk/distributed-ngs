@@ -4,8 +4,8 @@ import logging
 import warnings
 
 from digs import db, conf
-from digs.messaging import persistent
-from digs.manager import ManagerTransientProtocol
+from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol
+from digs.messaging.persistent import create_persistent_listener
 
 logging.basicConfig(level=logging.INFO)
 
@@ -37,34 +37,47 @@ def main():
     if args.conf:
         conf.settings.read(args.conf)
 
+    if 'manager' not in conf.settings:
+        raise Exception("The configuration file does not have a 'manager' "
+                        "section.")
+    manager_settings = conf.settings['manager']
+
     hostname = "127.0.0.1"
+    port = 31415
     if args.hostname:
         hostname = args.hostname
-    elif 'hostname' in conf.settings['manager']:
-        hostname = conf.settings['manager']['hostname']
+    elif 'hostname' in manager_settings:
+        hostname = manager_settings['hostname']
 
-    port = 31415
     if args.port > 0:
         port = args.port
-    elif 'port' in conf.settings['manager']:
-        port = conf.settings['manager'].getint('port')
+    elif 'port' in manager_settings:
+        port = manager_settings.getint('port')
 
     # Connect to database
-    db.initialize_db(conf.settings['manager']['sqlalchemy.url'])
+    db.initialize_db(manager_settings['sqlalchemy.url'])
 
     # Start the event loop
     loop = asyncio.get_event_loop()
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
 
     coro = loop.create_server(ManagerTransientProtocol, hostname, port)
     server = loop.run_until_complete(coro)
 
-    persistent_msg_listener = persistent.persistent_messages_listener(
-        conf.settings['manager'], )
+    rabbitmq_settings = {
+        key.replace("rabbitmq.", ""): manager_settings[key]
+        for key in manager_settings if key.startswith("rabbitmq.")
+    }
+
+    coro = create_persistent_listener(ManagerPersistentProtocol,
+                                      **rabbitmq_settings)
+    persistent_listener = loop.run_until_complete(coro)
+    loop.create_task(persistent_listener.listen_for("digs.central",
+                                                    "messages.actions"))
 
     print("Serving on {}".format(server.sockets[0].getsockname()))
     try:
@@ -75,6 +88,8 @@ def main():
     # Close the server
     server.close()
     loop.run_until_complete(server.wait_closed())
+    loop.run_until_complete(persistent_listener.wait_closed())
+
     loop.close()
 
 if __name__ == '__main__':
