@@ -246,3 +246,5 @@ sympy-plots-for-*.tex/
 # PDF files
 docs/**/*.pdf
 
+*.swp
+

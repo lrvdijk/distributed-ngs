@@ -1,4 +1,5 @@
-from typing import Dict, Any
+from abc import ABCMeta, abstractmethod
+from typing import Dict, Any, Union
 import logging
 import json
 import collections
@@ -7,6 +8,16 @@ from digs.messaging.actions import BaseAction
 from digs.exc import InvalidActionError
 
 logger = logging.getLogger(__name__)
+
+
+class BaseProtocol(metaclass=ABCMeta):
+    @abstractmethod
+    def send_action(self, action):
+        """Send an action to the other end of the connection.
+
+        :param action: The action instance to send
+        :type action: BaseAction
+        """
 
 
 class DigsProtocolParser:
@@ -23,16 +34,21 @@ class DigsProtocolParser:
         self.actions = {}  # type: Dict[str, Any]
         self.handlers = collections.defaultdict(list)
 
-    def parse(self, data: bytes):
-        logger.debug("Start parsing incoming raw bytes: %s", data)
+    def parse(self, data: Union[bytes, str]):
+        logger.debug("Start parsing data: %s", data)
 
         # convert bytes to unicode, encoding should be utf-8
-        data = data.decode()
+        if isinstance(data, bytes):
+            data = data.decode()
+
         logger.debug("Unicode string: %s", data)
 
         # Check which action it tries to perform, and initialize the action
         # object (using values from the incoming JSON).
-        action, json_data = data.strip().split(maxsplit=1)
+        parts = data.strip().split(maxsplit=1)
+        action = parts[0]
+        json_data = parts[1] if len(parts) == 2 else "{}"
+
         if action not in self.actions:
             raise InvalidActionError(
                 "Trying to perform an unknown action '%s'" % action
