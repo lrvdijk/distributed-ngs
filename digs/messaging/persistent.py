@@ -116,9 +116,21 @@ class PersistentListener:
         if not self.transport.is_closing():
             self.transport.close()
 
-async def create_persistent_listener(protocol_factory=PersistentProtocol,
-                                     *args, loop=None, **kwargs):
-    """Connect to RabbitMQ server"""
+
+async def create_persistent_listener(protocol_factory, *args, loop=None,
+                                     **kwargs):
+    """Connect to RabbitMQ server.
+
+    This function accepts the same parameters als the `aioamqp.connect`
+    function, with the exception of `protocol_factory`. This parameter has a
+    different meaning in this function.
+
+    :param protocol_factory: When a new messages arrives, the protocol
+    defines how to handle this message. This parameter should be a callable
+    which returns the protocol instance.
+    :type protocol_factory: PersistentProtocol
+    """
+
     transport, protocol = await aioamqp.connect(*args, **kwargs)
     channel = await protocol.channel()
 
