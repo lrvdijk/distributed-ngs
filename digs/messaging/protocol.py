@@ -32,7 +32,7 @@ class DigsProtocolParser:
 
     def __init__(self):
         self.actions = {}  # type: Dict[str, Any]
-        self.handlers = collections.defaultdict(list)
+        self.handlers = collections.defaultdict(lambda: None)
 
     def parse(self, data: Union[bytes, str]):
         logger.debug("Start parsing data: %s", data)
@@ -62,27 +62,21 @@ class DigsProtocolParser:
 
         return action_inst, self.handlers[action_inst.action]
 
-    def define_action(self, action):
-        assert issubclass(action, BaseAction)
-        self.actions[action.action] = action
-
-        # Return `action` so this function can be used as decorator
-        return action
-
     def register_handler(self, action, handler=None):
         """Register a function as handler for a given action."""
-        if action.action not in self.actions:
+        if action.action in self.actions:
             raise InvalidActionError(
-                "Trying to register a handler for an undefined "
-                "action '%s'" % action
+                "Trying to register a handler for an action that already "
+                "has a handler."
             )
 
+        self.actions[action.action] = action
         if handler is not None:
-            self.handlers[action.action].append(handler)
+            self.handlers[action.action] = handler
         else:
             # Used as decorator, return wrapper function
             def _register_handler(func):
-                self.handlers[action.action].append(func)
+                self.handlers[action.action] = func
 
                 return func
 

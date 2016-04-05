@@ -1,17 +1,12 @@
 import logging
 
 from digs.messaging.protocol import DigsProtocolParser
-from digs.common.actions import HeartBeat, LocateData, JobRequest
+from digs.common.actions import LocateData, JobRequest
 
 logger = logging.getLogger(__name__)
 
 transient_parser = DigsProtocolParser()
 persistent_parser = DigsProtocolParser()
-
-transient_parser.define_action(HeartBeat)
-transient_parser.define_action(LocateData)
-
-persistent_parser.define_action(JobRequest)
 
 
 @transient_parser.register_handler(LocateData)

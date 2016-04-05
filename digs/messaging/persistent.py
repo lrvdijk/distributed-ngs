@@ -12,6 +12,7 @@ from abc import abstractproperty
 
 import aioamqp
 from aioamqp.protocol import AmqpProtocol
+from aioamqp.envelope import Envelope
 from aioamqp.channel import Channel
 
 from digs.exc import MessagingError
@@ -28,8 +29,8 @@ class PersistentProtocol(BaseProtocol):
 
     It provides some helper functions for sending and parsing actions."""
 
-    def __init__(self, channel: Channel, body, envelope, properties,
-                 loop=None):
+    def __init__(self, channel: Channel, body, envelope: Envelope,
+                 properties, loop=None):
         self.channel = channel
         self.body = body
         self.envelope = envelope
@@ -71,11 +72,13 @@ class PersistentProtocol(BaseProtocol):
             if len(self.body.strip()) == 0:
                 return
 
-            action, handlers = self.parser.parse(self.body)
+            action, handler = self.parser.parse(self.body)
 
-            for handler in handlers:
-                logger.debug("Scheduling handler %r", handler)
-                self._loop.create_task(handler(self, action))
+            logger.debug("Scheduling handler %r", handler)
+            await handler(self, action)
+            logger.debug("Successfully finished handler %r, sending ack" %
+                         handler)
+            await self.channel.basic_client_ack(self.envelope.delivery_tag)
         except (KeyboardInterrupt, asyncio.CancelledError):
             pass
         except Exception:
@@ -190,7 +193,8 @@ async def create_publisher(*args, loop=None, **kwargs):
     channel = await rabbitmq_connection['protocol'].channel()
 
     return PersistentPublisher(rabbitmq_connection['transport'],
-                               rabbitmq_connection['protocol'], channel)
+                               rabbitmq_connection['protocol'], channel,
+                               loop=loop)
 
 
 async def wait_closed():
