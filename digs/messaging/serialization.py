@@ -65,26 +65,26 @@ class BaseSerializable:
                         value, field_type)
                 )
 
-    def to_json(self):
+    def get_values(self):
         values = {}
         for field, value in self.values.items():
             if isinstance(value, BaseSerializable):
-                value = value.to_json()
+                value = value.get_values()
 
             values[field] = value
 
-        return json.dumps(values)
+        return values
+
+    def to_json(self):
+        return json.dumps(self.get_values())
 
     def load_from_json(self, json_data):
         keys_loaded = []
         for key, value in json_data.items():
-            if key not in self.fields:
-                raise TypeError(
-                    "The key '{}' does not belong in the JSON data for "
-                    "action '{}'".format(key, self.action)
-                )
-
-            field_type = self.fields[key]
+            if key in self.fields:
+                field_type = self.fields[key]
+            else:
+                field_type = str
 
             if issubclass(field_type, BaseSerializable):
                 inst = field_type()
