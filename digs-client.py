@@ -22,8 +22,8 @@ async def send_job_request(publisher):
     req = JobRequest(job=job)
 
     print(str(req))
-    return await publisher.publish(str(req), "digs.central",
-                                   "messages.actions")
+    return await publisher.publish(str(req), "digs.messages",
+                                   "action.{}".format(req.action))
 
 
 def main():

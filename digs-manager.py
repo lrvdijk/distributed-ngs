@@ -5,7 +5,7 @@ import warnings
 
 from digs import db, conf
 from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol
-from digs.messaging.persistent import create_persistent_listener
+from digs.messaging import persistent
 from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
@@ -71,11 +71,11 @@ def main():
         for key in manager_settings if key.startswith("rabbitmq.")
     }
 
-    coro = create_persistent_listener(ManagerPersistentProtocol,
-                                      **rabbitmq_settings)
+    coro = persistent.create_persistent_listener(ManagerPersistentProtocol,
+                                                 **rabbitmq_settings)
     persistent_listener = loop.run_until_complete(coro)
-    loop.create_task(persistent_listener.listen_for("digs.central",
-                                                    "messages.actions"))
+    loop.create_task(persistent_listener.listen_for(
+        "digs.messages", "action.*", 'central_queue'))
 
     coro = loop.create_server(ManagerTransientProtocol, hostname, port)
     server = loop.run_until_complete(coro)
@@ -89,7 +89,7 @@ def main():
     # Close the server
     server.close()
     loop.run_until_complete(server.wait_closed())
-    loop.run_until_complete(persistent_listener.wait_closed())
+    loop.run_until_complete(persistent.wait_closed())
 
     loop.close()
 
