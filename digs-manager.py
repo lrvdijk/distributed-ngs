@@ -6,6 +6,7 @@ import warnings
 from digs import db, conf
 from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol
 from digs.messaging.persistent import create_persistent_listener
+from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,8 +39,8 @@ def main():
         conf.settings.read(args.conf)
 
     if 'manager' not in conf.settings:
-        raise Exception("The configuration file does not have a 'manager' "
-                        "section.")
+        raise ConfigurationError("The configuration file does not have a "
+                                 "'manager' section.")
     manager_settings = conf.settings['manager']
 
     hostname = "127.0.0.1"
@@ -65,9 +66,6 @@ def main():
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
 
-    coro = loop.create_server(ManagerTransientProtocol, hostname, port)
-    server = loop.run_until_complete(coro)
-
     rabbitmq_settings = {
         key.replace("rabbitmq.", ""): manager_settings[key]
         for key in manager_settings if key.startswith("rabbitmq.")
@@ -78,6 +76,9 @@ def main():
     persistent_listener = loop.run_until_complete(coro)
     loop.create_task(persistent_listener.listen_for("digs.central",
                                                     "messages.actions"))
+
+    coro = loop.create_server(ManagerTransientProtocol, hostname, port)
+    server = loop.run_until_complete(coro)
 
     print("Serving on {}".format(server.sockets[0].getsockname()))
     try:
