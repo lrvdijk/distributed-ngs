@@ -5,14 +5,18 @@ from sqlalchemy.ext.declarative import declarative_base
 
 ModelBase = declarative_base()
 
+# TODO remove extended existing
+
 
 class DataType:
     FASTA = 'fasta'
     RESULTS = 'results'
     TEXT = 'text'
+    SHOTGUN = 'shotgun'
 
 
 class DataNode(ModelBase):
+    __table_args__ = {'extend_existing': True}
     """Sqlalchemy data node model"""
     __tablename__ = "data_node"
 
@@ -26,6 +30,7 @@ class DataNode(ModelBase):
 
 
 class ComputationNode(ModelBase):
+    __table_args__ = {'extend_existing': True}
     """Sqlalchemy computation node model"""
     __tablename__ = "computation_node"
 
@@ -37,17 +42,20 @@ class ComputationNode(ModelBase):
     cpu_power = Column('cpu_power', Integer, nullable=True)
 
 class Data(ModelBase):
+    __table_args__ = {'extend_existing': True}
     """Sqlalchemy data model"""
     __tablename__ = "data"
 
     id = Column(Integer, primary_key=True)
     title = Column('title', String)
     size = Column('size', String, nullable=False)
-    type = Column(Enum(DataType.FASTA, DataType.RESULTS, DataType.TEXT, name='data_type_enum'))
+    type = Column(Enum(DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN, name='data_type_enum'))
+    hash = Column('hash', Integer, nullable=False)
     upload_date = Column('upload_date', DateTime, nullable=False)
 
 
 class DataLoc(ModelBase):
+    __table_args__ = {'extend_existing': True}
     """Sqlalchemy fasta data model"""
     __tablename__ = "data_loc"
 
@@ -56,3 +64,21 @@ class DataLoc(ModelBase):
     data_node_id = Column('data_node_id', Integer, ForeignKey('data_node.id'))
     file_path = Column('file_path', String, nullable=False)
     UniqueConstraint('fasta_id', 'data_node_id')
+
+
+class UploadJob(ModelBase):
+    __table_args__ = {'extend_existing': True}
+    """Sqlalchemy fasta upload job model"""
+    __tablename__ = "upload_job"
+
+    id = Column(Integer, primary_key=True)
+    data_node_id = Column('data_node_id', Integer, ForeignKey('data_node.id'))
+    file_path = Column('file_path', String)
+    title = Column('title', String)
+    size = Column('size', String, nullable=False)
+    type = Column(Enum(DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN, name='data_type_enum'))
+    upload_date = Column('upload_date', DateTime, nullable=False)
+    client_id = Column('client_id', Integer)
+    client_name = Column('client_name', String)
+    hash = Column('hash', Integer, nullable=False)
+

@@ -1,6 +1,7 @@
-from digs.manager.models import Data, DataNode, DataLoc, DataType
-from digs.manager import ManagerServerProtocol, db
+from digs.manager.models import Data, DataNode, DataLoc, DataType, UploadJob
+from digs.manager import db
 import time
+import datetime
 from datetime import datetime
 
 
@@ -10,13 +11,15 @@ def main():
     db.initialize_db("sqlite:///manager.db")
     session = db.Session()
     db.create_tables()
-    #
+
     # fasta1 = Data(title='FirstFastaFile',
     #                     size=495840,
+    #                     hash=222,
     #                     type=DataType.FASTA,
     #                     upload_date=datetime.fromtimestamp(time.time()))
     # fasta2 = Data(title='SecondFastaFile',
     #                     size=495840,
+    #                     hash=111,
     #                     type=DataType.FASTA,
     #                     upload_date=datetime.fromtimestamp(time.time()))
     # data1 = DataNode(title='node1',
@@ -34,15 +37,35 @@ def main():
     #
     # session.add_all([fasta1,fasta2, data1, data2])
     # session.commit()
-    combi1 = DataLoc(data_id=1,
-                          data_node_id=2,
-                          file_path='DataFiles/DataNodes/testFasta.data', )
-    # combi2 = DataLoc(data_id=2,
+    # combi1 = DataNode(title='DataNode1',
+    #                     ip='127.0.0.1',
+    #                   socket=5673,
+    #                   location='Rdam',
+    #                   free_space=5953039,
+    #                   disk_space=15953039,
+    #                   )
+    # combi2 = DataNode(title='DataNode2',
+    #                   ip='127.0.0.1',
+    #                   socket=5674,
+    #                   location='Rdam2',
+    #                   free_space=19953039,
+    #                   disk_space=15953039,
+    #                   )
+    #
+    # combi3 = DataLoc(data_id=2,
     #                       data_node_id=2,
     #                       file_path='DataFiles/DataNodes/testFasta.data', )
-    session.add_all([combi1])
+
+    new_job = UploadJob(data_node_id=1,
+                        size=50,
+                        type=DataType.FASTA,
+                        upload_date=datetime.now(),
+                        hash=123,
+                        )
+    session.add(new_job)
     session.commit()
 
 
 if __name__ == '__main__':
     main()
+

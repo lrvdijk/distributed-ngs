@@ -1,18 +1,18 @@
 import sys
 import socket
+import os
 import time
 import json
 
-from digs.common.actions import HeartBeat
+from digs.manager.models import DataType
 
 
 def main():
-    str1 = 'request_data_chunks '
+    str1 = 'store_data '
     data = {}
-    data['file_id'] = 1
-    data['start'] = 0
-    data['end'] = 21
-    data['chunk_size'] = 6
+    data['hash'] = 11111
+    data['size'] = 5953039
+    data['type'] = DataType.SHOTGUN
     str1 = str1 + json.dumps(data) + '\n'
     print(str1)
 
@@ -35,6 +35,21 @@ def main():
     print("[*] Received:", data)
 
     sock.close()
+    parts = data.decode().strip().split(maxsplit=1)
+    result = json.loads(parts[1])
+    print(result['socket'])
+    cmd = "rsync -avz --append-verify --info=progress2 "
+    local_path = "/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/ClientData/AABR "
+    remote_path = "/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/" + str(result['socket'])
+    rsync = cmd + local_path + remote_path
+    err = os.system(rsync)
+    print(err)
+    if err is 0:
+        print("No error found! good job")
+    else:
+        print("Error rsync not complete! try again!")
+
+
 
 if __name__ == '__main__':
     main()

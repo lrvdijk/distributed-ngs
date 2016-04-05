@@ -1,13 +1,15 @@
 import logging
+import datetime
 from math import ceil
 from sqlalchemy import func
 from json import dumps
 
-from digs.manager.actions import (parser, HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks)
+
+from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData)
 from digs.manager.db import Session
-from digs.manager.models import DataLoc, DataNode, Data
+from digs.manager.models import DataLoc, DataNode, Data, UploadJob
 from digs.messaging.protocol import DigsProtocolParser
-from digs.exc import InvalidChunkSizeError
+from digs.exc import NotEnoughSpaceError
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +18,58 @@ persistent_parser = DigsProtocolParser()
 
 transient_parser.define_action(HeartBeat)
 transient_parser.define_action(LocateData)
+transient_parser.define_action(GetAllDataLocs)
+transient_parser.define_action(RequestChunks)
+transient_parser.define_action(StoreData)
 
 persistent_parser.define_action(JobRequest)
+
+
+@transient_parser.register_handler(StoreData)
+async def store_data(protocol, action):
+    """This function handles a request from a client to locate a dataset."""
+    session = Session()
+    logger.debug("store_data call: %r, %r", protocol, action)
+
+    if session.query(Data).filter_by(hash=action['hash']).first() is not None:
+        # TODO send error message back
+        result = {'err': "hash already in database!"}
+        result_str = 'locate_data_result ' + dumps(result)
+        await protocol.send_action(result_str)
+        return
+
+    con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
+
+    if con_job is not None:  # The hash already exists in job list, continue work
+        logger.debug("Hash found in jobs returning previous data node.")
+        loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
+    else:  # New task found, get random DataNode
+        logger.debug("New job, getting random DataNode.")
+        loc = session.query(DataNode).filter(DataNode.free_space > action['size']).order_by(func.random()).first()
+        if loc is None:
+            logger.debug("loc is None")
+            raise NotEnoughSpaceError(
+                "Currently no nodes found with %s free space.", action['size']
+            )
+            return
+        # TODO add and start using file path
+        logger.debug("at TODO")
+
+        new_job = UploadJob(data_node_id=loc.id,
+                            size=action['size'],
+                            type=action['type'],
+                            upload_date=datetime.now(),
+                            hash=action['hash'],
+                            )
+
+        logger.debug("after newjb TODO")
+        loc.free_space = loc.free_space - action['size']
+        session.add_all(new_job)
+        session.commit()
+
+    result = {'ip': loc.ip, 'socket': loc.socket}
+    result_str = 'locate_data_result ' + dumps(result)
+    await protocol.send_action(result_str)
 
 
 @transient_parser.register_handler(LocateData)
@@ -33,7 +85,7 @@ async def locate_data(protocol, action):
     print(result_str)
 
 
-@parser.register_handler(GetAllDataLocs)
+@transient_parser.register_handler(GetAllDataLocs)
 async def get_all_data_locs(protocol, action):
     """This function handles a request from a client to get_all_data_locations of a dataset."""
     session = Session()
@@ -48,10 +100,8 @@ async def get_all_data_locs(protocol, action):
     print(protocol)
     protocol.send_action(result_str)
 
-    parser.register_handler(GetAllDataLocs)
 
-
-@parser.register_handler(RequestChunks)
+@transient_parser.register_handler(RequestChunks)
 async def request_data_chunks(protocol, action):
     """This function handles a request from a client to a list of chunk requests of a dataset.
     """

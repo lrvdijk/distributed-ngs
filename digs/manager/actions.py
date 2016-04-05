@@ -14,28 +14,28 @@ class Announce(Action):
 
     hostname = str
     type = str
-
-
-@parser.define_action
-class GetAllDataLocs(Action):
-    __action__ = 'get_all_data_locs'
-
-    file_id = int # data id
-
-
-@parser.define_action
-class LocateData(Action):
-    __action__ = 'locate_data'
-
-    file_id = int  # data id
-
-
-@parser.define_action
-class RequestChunks(Action):
-    __action__ = 'request_data_chunks'
-
-    file_id = int  # data id
-    start = int # starting value for chunks
-    end = int # end value of chunks
-    chunk_size = int # size of chunks
+#
+#
+# @parser.define_action
+# class GetAllDataLocs(Action):
+#     __action__ = 'get_all_data_locs'
+#
+#     file_id = int # data id
+#
+#
+# @parser.define_action
+# class LocateData(Action):
+#     __action__ = 'locate_data'
+#
+#     file_id = int  # data id
+#
+#
+# @parser.define_action
+# class RequestChunks(Action):
+#     __action__ = 'request_data_chunks'
+#
+#     file_id = int  # data id
+#     start = int # starting value for chunks
+#     end = int # end value of chunks
+#     chunk_size = int # size of chunks
 

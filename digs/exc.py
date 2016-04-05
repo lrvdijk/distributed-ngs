@@ -14,3 +14,6 @@ class ConfigurationError(Exception):
 class InvalidChunkSizeError(Exception):
     pass
 
+
+class NotEnoughSpaceError(Exception):
+    pass

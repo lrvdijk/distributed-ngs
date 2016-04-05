@@ -1,5 +1,6 @@
 from digs.messaging.serialization import Serializable
 from digs.messaging.actions import Action
+from digs.manager.models import DataType
 
 
 class HeartBeat(Action):
@@ -63,3 +64,10 @@ class RequestChunks(Action):
     start = int # starting value for chunks
     end = int # end value of chunks
     chunk_size = int # size of chunks
+
+class StoreData(Action):
+    __action__ = 'store_data'
+
+    hash = int # hash of the data
+    size = int # size of the shotgun read file in bytes.
+    type = DataType # the type of data to store
