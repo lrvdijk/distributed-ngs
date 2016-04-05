@@ -21,7 +21,6 @@ async def send_job_request(publisher):
     job = BWAJob(program_name='bwa', reference_genome=1, reads=1)
     req = JobRequest(job=job)
 
-    print(str(req))
     return await publisher.publish(str(req), "digs.messages",
                                    "action.{}".format(req.action))
 
@@ -66,6 +65,7 @@ def main():
     coro = persistent.create_publisher(**rabbitmq_settings)
     publisher = loop.run_until_complete(coro)
     loop.run_until_complete(send_job_request(publisher))
+    loop.run_until_complete(persistent.wait_closed())
 
     loop.close()
 
