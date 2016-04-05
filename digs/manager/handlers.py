@@ -46,7 +46,7 @@ async def store_data(protocol, action):
             return
 
         date = datetime.datetime.now()
-        # TODO add and start using file path
+        # TODO add and start using file path.
         new_job = UploadJob(data_node_id=loc.id,
                             size=action['size'],
                             type=action['type'],
