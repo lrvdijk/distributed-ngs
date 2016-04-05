@@ -11,6 +11,7 @@ import logging
 from abc import abstractproperty
 
 import aioamqp
+from aioamqp.protocol import AmqpProtocol
 from aioamqp.channel import Channel
 
 from digs.exc import MessagingError
@@ -77,7 +78,8 @@ class PersistentProtocol(BaseProtocol):
 
 
 class PersistentListener:
-    def __init__(self, transport, protocol, channel,
+    def __init__(self, transport: asyncio.BaseTransport,
+                 protocol: AmqpProtocol, channel: Channel,
                  protocol_factory=PersistentProtocol, loop=None):
 
         self.transport = transport
@@ -95,18 +97,11 @@ class PersistentListener:
 
         # Bind queue to messages exchange, and listen to messages of given
         # topic
-        await self.channel.queue_bind(queue['queue'], exchange, topic)
+        await self.channel.queue_bind(queue['queue'], exchange,
+                                      routing_key=topic)
 
-        while True:
-            try:
-                await self.channel.basic_consume(self._on_message,
-                                                 queue['queue'])
-            except (KeyboardInterrupt, asyncio.CancelledError):
-                logger.debug("Persistent messaging listener cancelled")
-                break
-            except Exception:
-                logger.exception("Error while handling a message from the "
-                                 "queue")
+        return await self.channel.basic_consume(self._on_message,
+                                                queue['queue'])
 
     async def _on_message(self, channel, body, envelope, properties):
         protocol = self.protocol_factory(channel, body, envelope,
@@ -115,8 +110,11 @@ class PersistentListener:
         self._loop.create_task(protocol.process())
 
     async def wait_closed(self):
-        await self.protocol.close()
-        self.transport.close()
+        if self.protocol.is_open:
+            await self.protocol.close()
+
+        if not self.transport.is_closing():
+            self.transport.close()
 
 async def create_persistent_listener(protocol_factory=PersistentProtocol,
                                      *args, loop=None, **kwargs):
