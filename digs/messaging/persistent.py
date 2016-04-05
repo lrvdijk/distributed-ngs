@@ -6,7 +6,6 @@ This module provides an easy API to build a persistent messaging system
 using a RabbitMQ message queue.
 """
 
-import uuid
 import asyncio
 import logging
 from abc import abstractproperty
@@ -96,11 +95,13 @@ class PersistentListener:
 
         self.channel = channel
 
-    async def listen_for(self, exchange, topic):
+    async def listen_for(self, exchange, topic, queue_name=''):
         await self.channel.exchange(exchange, type_name='topic')
 
         # Exclusive queue with random name for this listener
-        queue = await self.channel.queue_declare(exclusive=True)
+        durable = queue_name != ''
+        queue = await self.channel.queue_declare(queue_name=queue_name,
+                                                 durable=durable)
 
         # Bind queue to messages exchange, and listen to messages of given
         # topic
@@ -116,13 +117,6 @@ class PersistentListener:
 
         self._loop.create_task(protocol.process())
 
-    async def wait_closed(self):
-        if self.protocol.is_open:
-            await self.protocol.close()
-
-        if not self.transport.is_closing():
-            self.transport.close()
-
 
 async def create_persistent_listener(protocol_factory, *args, loop=None,
                                      **kwargs):
@@ -136,6 +130,7 @@ async def create_persistent_listener(protocol_factory, *args, loop=None,
     defines how to handle this message. This parameter should be a callable
     which returns the protocol instance.
     :type protocol_factory: PersistentProtocol
+    :param loop: Optionally specify which event loop to use
     """
 
     if not rabbitmq_connection:
@@ -198,5 +193,13 @@ async def create_publisher(*args, loop=None, **kwargs):
                                rabbitmq_connection['protocol'], channel)
 
 
+async def wait_closed():
+    if rabbitmq_connection:
+        transport = rabbitmq_connection['transport']
+        protocol = rabbitmq_connection['protocol']
 
+        if protocol.is_open:
+            await protocol.close()
 
+        if not transport.is_closing():
+            transport.close()
