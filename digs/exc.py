@@ -17,3 +17,7 @@ class InvalidChunkSizeError(Exception):
 
 class NotEnoughSpaceError(Exception):
     pass
+
+
+class UnkownHash(Exception):
+    pass

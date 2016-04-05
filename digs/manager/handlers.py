@@ -5,11 +5,11 @@ from sqlalchemy import func
 from json import dumps
 
 
-from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData)
+from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob
 from digs.messaging.protocol import DigsProtocolParser
-from digs.exc import NotEnoughSpaceError
+from digs.exc import NotEnoughSpaceError, UnkownHash
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +21,14 @@ transient_parser.define_action(LocateData)
 transient_parser.define_action(GetAllDataLocs)
 transient_parser.define_action(RequestChunks)
 transient_parser.define_action(StoreData)
+transient_parser.define_action(StoreDataDone)
 
 persistent_parser.define_action(JobRequest)
 
 
 @transient_parser.register_handler(StoreData)
 async def store_data(protocol, action):
-    """This function handles a request from a client to locate a dataset."""
+    """This function handles a request from a client to upload a dataset."""
     session = Session()
     logger.debug("store_data call: %r, %r", protocol, action)
 
@@ -52,21 +53,9 @@ async def store_data(protocol, action):
                 "Currently no nodes found with %s free space.", action['size']
             )
             return
-        # TODO add and start using file path
-        logger.debug("at TODO")
-        logger.debug(action['type'])
-        logger.debug("at TODO")
 
-        logger.debug(action['hash'])
-        logger.debug("at TODO")
-
-        logger.debug(action['size'])
-        logger.debug("at TODO")
         date = datetime.datetime.now()
-
-        logger.debug(date)
-        logger.debug("at TODO")
-
+        # TODO add and start using file path
         new_job = UploadJob(data_node_id=loc.id,
                             size=action['size'],
                             type=action['type'],
@@ -74,15 +63,43 @@ async def store_data(protocol, action):
                             hash=action['hash'],
                             )
         loc.free_space = loc.free_space - action['size']
-        logger.debug("at TODO1")
         session.add(new_job)
-        logger.debug("at TODO2")
         session.commit()
-        logger.debug("at TODO3")
 
     result = {'ip': loc.ip, 'socket': loc.socket}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
+
+@transient_parser.register_handler(StoreData)
+async def store_data(protocol, action):
+    """This function handles a done message from a client about a upload."""
+    session = Session()
+    logger.debug("store_data_done call: %r, %r", protocol, action)
+
+    con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
+    if con_job is None:
+        raise UnkownHash(
+            "Currently hash found %s job not found.", action['hash']
+        )
+    loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
+    new_data = Data(size=con_job.size,
+                    type=con_job.type,
+                    upload_date=con_job.upload_date,
+                    hash=con_job.hash,
+                    )
+    session.add(new_data)
+    session.flush()
+    session.refresh(new_data)
+    # TODO adjust hardcoded string
+    path = "/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/"
+    path += str(loc.socket)
+    new_data_loc = DataLoc(data_node_id=con_job.data_node_id,
+                           data_id=new_data.id,
+                           file_path=path,
+                           )
+    session.add(new_data_loc)
+    session.delete(con_job)
+    session.commit()
 
 
 @transient_parser.register_handler(LocateData)

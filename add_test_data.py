@@ -54,7 +54,7 @@ def main():
     #
     # combi3 = DataLoc(data_id=2,
     #                       data_node_id=2,
-    #                       file_path='DataFiles/DataNodes/testFasta.data', )
+    #                       file_path='/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/5674', )
 
     new_job = UploadJob(data_node_id=1,
                         size=50,

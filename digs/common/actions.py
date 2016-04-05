@@ -71,3 +71,8 @@ class StoreData(Action):
     hash = int # hash of the data
     size = int # size of the shotgun read file in bytes.
     type = str # the type of data to store
+
+class StoreDataDone(Action):
+    __action__ = 'store_data_done'
+
+    hash = int # hash of the data
