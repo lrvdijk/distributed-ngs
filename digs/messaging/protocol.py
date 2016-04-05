@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, Union
 import logging
 import json
 import collections
@@ -34,11 +34,13 @@ class DigsProtocolParser:
         self.actions = {}  # type: Dict[str, Any]
         self.handlers = collections.defaultdict(list)
 
-    def parse(self, data: bytes):
-        logger.debug("Start parsing incoming raw bytes: %s", data)
+    def parse(self, data: Union[bytes, str]):
+        logger.debug("Start parsing data: %s", data)
 
         # convert bytes to unicode, encoding should be utf-8
-        data = data.decode()
+        if isinstance(data, bytes):
+            data = data.decode()
+
         logger.debug("Unicode string: %s", data)
 
         # Check which action it tries to perform, and initialize the action
