@@ -6,13 +6,21 @@ from json import dumps
 from digs.manager.actions import (parser, HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data
+from digs.messaging.protocol import DigsProtocolParser
 from digs.exc import InvalidChunkSizeError
-
 
 logger = logging.getLogger(__name__)
 
+transient_parser = DigsProtocolParser()
+persistent_parser = DigsProtocolParser()
 
-@parser.register_handler(LocateData)
+transient_parser.define_action(HeartBeat)
+transient_parser.define_action(LocateData)
+
+persistent_parser.define_action(JobRequest)
+
+
+@transient_parser.register_handler(LocateData)
 async def locate_data(protocol, action):
     """This function handles a request from a client to locate a dataset."""
     session = Session()
@@ -79,3 +87,11 @@ async def request_data_chunks(protocol, action):
         chunk_requests.append(node)
 
     logger.debug(chunk_requests)
+
+
+@persistent_parser.register_handler(JobRequest)
+async def job_request(protocol, action):
+    """This function splits a job in to multiple sub jobs and puts them in
+    the worker queue."""
+
+    logger.debug("Job request: %r", action)

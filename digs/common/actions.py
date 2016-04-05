@@ -15,6 +15,13 @@ class Error(Action):
     message = str
 
 
+class Announce(Action):
+    __action__ = 'announce'
+
+    hostname = str
+    type = str
+
+
 class Job(Serializable):
     program_name = str
 
@@ -29,3 +36,9 @@ class PerformJob(Action):
     __action__ = 'perform_job'
 
     job = Job
+
+
+class LocateData(Action):
+    __action__ = 'locate_data'
+
+    filenames = list

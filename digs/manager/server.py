@@ -1,7 +1,8 @@
 import logging
 
-from digs.common.server import TransientProtocol
-from digs.manager.handlers import parser
+from digs.manager.handlers import transient_parser, persistent_parser
+from digs.messaging.transient import TransientProtocol
+from digs.messaging.persistent import PersistentProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -16,4 +17,10 @@ class ManagerTransientProtocol(TransientProtocol):
 
     @property
     def parser(self):
-        return parser
+        return transient_parser
+
+
+class ManagerPersistentProtocol(PersistentProtocol):
+    @property
+    def parser(self):
+        return persistent_parser
