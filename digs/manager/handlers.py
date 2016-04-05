@@ -18,7 +18,7 @@ async def locate_data(protocol, action):
     session = Session()
     logger.debug("locate_data call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
-    data = session.query(DataLoc).filter_by(data_id=file_id).order_by(func.random()).first()
+    data = session.query(DataLoc).filter_by(data_id=action['file_id']).order_by(func.random()).first()
     loc = session.query(DataNode).filter_by(id=data.data_node_id).first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
