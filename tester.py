@@ -12,7 +12,7 @@ def main():
     data = {}
     data['hash'] = 11111
     data['size'] = 5953039
-    data['type'] = DataType.SHOTGUN
+    data['type'] = 'shotgun'
     str1 = str1 + json.dumps(data) + '\n'
     print(str1)
 

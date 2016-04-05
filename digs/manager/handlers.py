@@ -54,18 +54,31 @@ async def store_data(protocol, action):
             return
         # TODO add and start using file path
         logger.debug("at TODO")
+        logger.debug(action['type'])
+        logger.debug("at TODO")
+
+        logger.debug(action['hash'])
+        logger.debug("at TODO")
+
+        logger.debug(action['size'])
+        logger.debug("at TODO")
+        date = datetime.datetime.now()
+
+        logger.debug(date)
+        logger.debug("at TODO")
 
         new_job = UploadJob(data_node_id=loc.id,
                             size=action['size'],
                             type=action['type'],
-                            upload_date=datetime.now(),
+                            upload_date=date,
                             hash=action['hash'],
                             )
-
-        logger.debug("after newjb TODO")
         loc.free_space = loc.free_space - action['size']
-        session.add_all(new_job)
+        logger.debug("at TODO1")
+        session.add(new_job)
+        logger.debug("at TODO2")
         session.commit()
+        logger.debug("at TODO3")
 
     result = {'ip': loc.ip, 'socket': loc.socket}
     result_str = 'locate_data_result ' + dumps(result)

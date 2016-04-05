@@ -5,7 +5,7 @@
 
 ## Directory-based project format:
 .idea/
-.DataFiles/ClientData/AABR
+DataFiles/ClientData/AABR
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
