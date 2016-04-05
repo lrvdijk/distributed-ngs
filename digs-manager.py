@@ -1,11 +1,13 @@
-import asyncio
 import argparse
+import asyncio
 import logging
 import warnings
 
-from digs import db, conf
+from digs import conf
 from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol
 from digs.messaging import persistent
+from digs import conf
+from digs.manager import db, ManagerTransientProtocol, ManagerPersistentProtocol
 from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
@@ -65,6 +67,7 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
+
 
     rabbitmq_settings = {
         key.replace("rabbitmq.", ""): manager_settings[key]
