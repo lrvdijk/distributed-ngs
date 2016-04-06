@@ -6,7 +6,6 @@ import json
 
 from digs.manager.models import DataType
 
-# why cannot i commit anymore?
 def main():
     hash = 11111
     str1 = 'store_data '
