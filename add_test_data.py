@@ -43,26 +43,28 @@ def main():
     #                   location='Rdam',
     #                   free_space=5953039,
     #                   disk_space=15953039,
+    #                   root_path="/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/",
     #                   )
-    # combi2 = DataNode(title='DataNode2',
-    #                   ip='127.0.0.1',
-    #                   socket=5674,
-    #                   location='Rdam2',
-    #                   free_space=19953039,
-    #                   disk_space=15953039,
-    #                   )
-    #
+    combi2 = DataNode(title='DataNode3',
+                      ip='127.0.0.1',
+                      socket=5677,
+                      location='Rdam3',
+                      free_space=199530000,
+                      disk_space=159530000,
+                      root_path="/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/",
+                      )
+
     # combi3 = DataLoc(data_id=2,
     #                       data_node_id=2,
     #                       file_path='/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/5674', )
-
-    new_job = UploadJob(data_node_id=1,
-                        size=50,
-                        type=DataType.FASTA,
-                        upload_date=datetime.now(),
-                        hash=123,
-                        )
-    session.add(new_job)
+    #
+    # new_job = UploadJob(data_node_id=1,
+    #                     size=50,
+    #                     type=DataType.FASTA,
+    #                     upload_date=datetime.now(),
+    #                     hash=123,
+    #                     )
+    session.add(combi2)
     session.commit()
 
 
