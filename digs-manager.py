@@ -4,10 +4,8 @@ import logging
 import warnings
 
 from digs import conf
-from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol
 from digs.messaging import persistent
-from digs import conf
-from digs.manager import db, ManagerTransientProtocol, ManagerPersistentProtocol
+from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol, db
 from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
@@ -59,6 +57,7 @@ def main():
 
     # Connect to database
     db.initialize_db(manager_settings['sqlalchemy.url'])
+    db.create_tables()
 
     # Start the event loop
     loop = asyncio.get_event_loop()
@@ -67,7 +66,6 @@ def main():
         logging.getLogger().setLevel(logging.DEBUG)
         warnings.filterwarnings("always", category=ResourceWarning)
         loop.set_debug(True)
-
 
     rabbitmq_settings = {
         key.replace("rabbitmq.", ""): manager_settings[key]
