@@ -35,7 +35,8 @@ async def store_data(protocol, action):
     # The hash already exists in job list, continue work
     if con_job is not None:
         logger.debug("Hash found in jobs returning previous data node.")
-        loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
+        loc = session.query(DataNode).filter_by(
+            id=con_job.data_node_id).first()
     else:  # New task found, get random DataNode
         logger.debug("New job, getting random DataNode.")
         loc = session.query(DataNode).filter(
@@ -102,7 +103,8 @@ async def locate_data(protocol, action):
     session = Session()
     logger.debug("locate_data call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
-    data = session.query(DataLoc).filter_by(data_id=action['file_id']).order_by(
+    data = session.query(DataLoc).filter_by(
+        data_id=action['file_id']).order_by(
         func.random()).first()
     loc = session.query(DataNode).filter_by(id=data.data_node_id).first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
@@ -112,7 +114,9 @@ async def locate_data(protocol, action):
 
 @transient_parser.register_handler(GetAllDataLocs)
 async def get_all_data_locs(protocol, action):
-    """This function handles a request from a client to get_all_data_locations of a dataset."""
+    """This function handles a request from a client to get_all_data_locations
+    of a dataset."""
+
     session = Session()
     logger.debug("GetAllDataLocs call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
