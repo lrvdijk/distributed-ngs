@@ -38,12 +38,6 @@ class PerformJob(Action):
     job = Job
 
 
-class LocateData(Action):
-    __action__ = 'locate_data'
-
-    filenames = list
-
-
 class GetAllDataLocs(Action):
     __action__ = 'get_all_data_locs'
 
