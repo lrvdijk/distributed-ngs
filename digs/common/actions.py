@@ -47,7 +47,8 @@ class GetAllDataLocs(Action):
 class LocateData(Action):
     __action__ = 'locate_data'
 
-    file_id = int  # data id
+    search_by = str  # type of search
+    term = str  # The value for this search
 
 
 class RequestChunks(Action):

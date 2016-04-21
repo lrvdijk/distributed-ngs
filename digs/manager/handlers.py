@@ -24,9 +24,8 @@ async def store_data(protocol, action):
     logger.debug("store_data call: %r, %r", protocol, action)
 
     if session.query(Data).filter_by(hash=action['hash']).first() is not None:
-        # TODO send error message back
         result = {'err': "hash already in database!"}
-        result_str = 'locate_data_result ' + dumps(result)
+        result_str = 'store_data_err ' + dumps(result)
         await protocol.send_action(result_str)
         return
 
@@ -49,18 +48,18 @@ async def store_data(protocol, action):
             )
 
         date = datetime.datetime.now()
-        # TODO add and start using file path
         new_job = UploadJob(data_node_id=loc.id,
                             size=action['size'],
                             type=action['type'],
                             upload_date=date,
                             hash=action['hash'],
+                            file_path=loc.root_path,
                             )
         loc.free_space = loc.free_space - action['size']
         session.add(new_job)
         session.commit()
 
-    result = {'ip': loc.ip, 'socket': loc.socket}
+    result = {'ip': loc.ip, 'socket': loc.socket, 'upload_path': loc.root_path}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
 
@@ -85,12 +84,10 @@ async def store_data_done(protocol, action):
     session.add(new_data)
     session.flush()
     session.refresh(new_data)
-    # TODO adjust hardcoded string
-    path = "/home/dwarrel/Courses/Distributed/distributed-ngs/DataFiles/DataNodes/"
-    path += str(loc.socket)
+
     new_data_loc = DataLoc(data_node_id=con_job.data_node_id,
                            data_id=new_data.id,
-                           file_path=path,
+                           file_path=con_job.file_path,
                            )
     session.add(new_data_loc)
     session.delete(con_job)
@@ -102,14 +99,37 @@ async def locate_data(protocol, action):
     """This function handles a request from a client to locate a dataset."""
     session = Session()
     logger.debug("locate_data call: %r, %r", protocol, action)
-    logger.debug("action filenames: %s", action['file_id'])
-    data = session.query(DataLoc).filter_by(
-        data_id=action['file_id']).order_by(
+    logger.debug("Search by: %s", action['search_by'])
+    if action['search_by'] == 'file_id':
+        file_id = action['term']
+    elif action['search_by'] == 'hash':
+        file = session.query(Data).filter_by(hash=action['term']).first()
+        if file is not None:
+            file_id = file.id
+    elif action['search_by'] == 'title':
+        file = session.query(Data).filter_by(title=action['term']).first()
+        if file is not None:
+            file_id = file.id
+    else:
+        message = "Cannot search for files using: " + action['search_by']
+        result = {'err': message}
+        result_str = 'locate_data_err ' + dumps(result)
+        await protocol.send_action(result_str)
+        return
+
+    data = session.query(DataLoc).filter_by(data_id=file_id).order_by(
         func.random()).first()
+    if data is None:
+        message = ("Could not locate file using: " + action['search_by'] +
+                   " : " + action['term'])
+        result = {'err': message}
+        result_str = 'locate_data_err ' + dumps(result)
+        await protocol.send_action(result_str)
+        return
     loc = session.query(DataNode).filter_by(id=data.data_node_id).first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
-    print(result_str)
+    await protocol.send_action(result_str)
 
 
 @transient_parser.register_handler(GetAllDataLocs)

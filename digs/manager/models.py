@@ -24,6 +24,7 @@ class DataNode(ModelBase):
     ip = Column('ip', String, nullable=False)
     socket = Column('socket', Integer, nullable=False)
     location = Column('location', String, nullable=True)
+    root_path = Column('root_path', String, nullable=True)  # TODO should become false.
     free_space = Column('free_space', Integer, nullable=True)
     disk_space = Column('disk_space', Integer, nullable=True)
 
