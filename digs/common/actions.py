@@ -47,7 +47,7 @@ class LocateData(Action):
 class GetAllDataLocs(Action):
     __action__ = 'get_all_data_locs'
 
-    file_id = int # data id
+    file_id = int  # data id
 
 
 class LocateData(Action):
@@ -60,18 +60,20 @@ class RequestChunks(Action):
     __action__ = 'request_data_chunks'
 
     file_id = int  # data id
-    start = int # starting value for chunks
-    end = int # end value of chunks
-    chunk_size = int # size of chunks
+    start = int  # starting value for chunks
+    end = int  # end value of chunks
+    chunk_size = int  # size of chunks
+
 
 class StoreData(Action):
     __action__ = 'store_data'
 
-    hash = int # hash of the data
-    size = int # size of the shotgun read file in bytes.
-    type = str # the type of data to store
+    hash = int  # hash of the data
+    size = int  # size of the shotgun read file in bytes.
+    type = str  # the type of data to store
+
 
 class StoreDataDone(Action):
     __action__ = 'store_data_done'
 
-    hash = int # hash of the data
+    hash = int  # hash of the data
