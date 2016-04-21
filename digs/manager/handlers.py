@@ -4,18 +4,18 @@ from math import ceil
 from sqlalchemy import func
 from json import dumps
 
-
-from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
+from digs.common.actions import (LocateData, JobRequest, GetAllDataLocs,
+                                 RequestChunks, StoreData, StoreDataDone)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob
 from digs.messaging.protocol import DigsProtocolParser
-from digs.common.actions import LocateData, JobRequest
 from digs.exc import NotEnoughSpaceError, UnkownHash
 
 logger = logging.getLogger(__name__)
 
 transient_parser = DigsProtocolParser()
 persistent_parser = DigsProtocolParser()
+
 
 @transient_parser.register_handler(StoreData)
 async def store_data(protocol, action):
@@ -32,18 +32,20 @@ async def store_data(protocol, action):
 
     con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
 
-    if con_job is not None:  # The hash already exists in job list, continue work
+    # The hash already exists in job list, continue work
+    if con_job is not None:
         logger.debug("Hash found in jobs returning previous data node.")
         loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
     else:  # New task found, get random DataNode
         logger.debug("New job, getting random DataNode.")
-        loc = session.query(DataNode).filter(DataNode.free_space > action['size']).order_by(func.random()).first()
+        loc = session.query(DataNode).filter(
+            DataNode.free_space > action['size']).order_by(
+            func.random()).first()
         if loc is None:
             logger.debug("loc is None")
             raise NotEnoughSpaceError(
                 "Currently no nodes found with %s free space.", action['size']
             )
-            return
 
         date = datetime.datetime.now()
         # TODO add and start using file path
@@ -60,6 +62,7 @@ async def store_data(protocol, action):
     result = {'ip': loc.ip, 'socket': loc.socket}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
+
 
 @transient_parser.register_handler(StoreDataDone)
 async def store_data_done(protocol, action):
@@ -99,7 +102,8 @@ async def locate_data(protocol, action):
     session = Session()
     logger.debug("locate_data call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
-    data = session.query(DataLoc).filter_by(data_id=action['file_id']).order_by(func.random()).first()
+    data = session.query(DataLoc).filter_by(data_id=action['file_id']).order_by(
+        func.random()).first()
     loc = session.query(DataNode).filter_by(id=data.data_node_id).first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
@@ -113,9 +117,11 @@ async def get_all_data_locs(protocol, action):
     logger.debug("GetAllDataLocs call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
     results = []
-    for row in session.query(DataLoc).filter_by(data_id=action['file_id']).all():
+    for row in session.query(DataLoc).filter_by(
+            data_id=action['file_id']).all():
         loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
-        results.append({'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
+        results.append(
+            {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
 
     result_str = 'locate_data_results ' + dumps(results)
     print(protocol)
@@ -134,7 +140,7 @@ async def request_data_chunks(protocol, action):
     end = int(action['end'])
     chunk_size = int(action['chunk_size'])
 
-    #TODO validate data parameters?
+    # TODO validate data parameters?
 
     tot_size = end - start
     num_chunks = ceil(tot_size / chunk_size)
@@ -145,14 +151,20 @@ async def request_data_chunks(protocol, action):
 
     chunk_requests = []
     chunk_start = start
-    for idx, row in enumerate(session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
+    for idx, row in enumerate(
+            session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
         loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
-        node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path, 'chunks': []}
+        node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path,
+                'chunks': []}
         for j in range(0, chunk_per_loc):
-            node['chunks'].append({'chunk_start': chunk_start, 'chunk_end': min(chunk_start+chunk_size, end)})
+            node['chunks'].append({'chunk_start': chunk_start,
+                                   'chunk_end': min(chunk_start + chunk_size,
+                                                    end)})
             chunk_start += chunk_size
         if idx < chunks_left:  # Add leftover chunks spread over first nodes
-            node['chunks'].append({'chunk_start': chunk_start, 'chunk_end': min(chunk_start + chunk_size, end)})
+            node['chunks'].append({'chunk_start': chunk_start,
+                                   'chunk_end': min(chunk_start + chunk_size,
+                                                    end)})
             chunk_start += chunk_size
 
         chunk_requests.append(node)

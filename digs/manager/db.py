@@ -13,7 +13,6 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.engine.url import URL
 
 from digs.manager.models import ModelBase
-from settings import DATABASE
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ def initialize_db(connection_string):
 
     global engine
 
-    engine = create_engine(URL(**DATABASE))
+    engine = create_engine(connection_string)
     Session.configure(bind=engine)
 
 
