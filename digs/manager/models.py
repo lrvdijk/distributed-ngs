@@ -14,19 +14,57 @@ class DataType:
     SHOTGUN = 'shotgun'
 
 
+class DataLoc(ModelBase):
+    """Association table between data files and data nodes. A data file can
+    be replicated across multiple nodes."""
+
+    __table_args__ = {'extend_existing': True}
+    __tablename__ = "data_loc"
+
+    data_id = Column(Integer, ForeignKey('data.id'),
+                     primary_key=True)
+    data_node_id = Column(Integer, ForeignKey('data_node.id'),
+                          primary_key=True)
+    file_path = Column(String, nullable=False)
+
+    dara_node = relationship("DataNode", back_populates="data_files")
+    data_file = relationship("Data", back_populates="data_nodes")
+
+
 class DataNode(ModelBase):
     """Sqlalchemy data node model"""
     __table_args__ = {'extend_existing': True}
     __tablename__ = "data_node"
 
     id = Column(Integer, primary_key=True)
-    title = Column('title', String)
-    ip = Column('ip', String, nullable=False)
-    socket = Column('socket', Integer, nullable=False)
-    location = Column('location', String, nullable=True)
-    root_path = Column('root_path', String, nullable=True)  # TODO should become false.
-    free_space = Column('free_space', Integer, nullable=True)
-    disk_space = Column('disk_space', Integer, nullable=True)
+    title = Column(String)
+    ip = Column(String, nullable=False)
+    socket = Column(Integer, nullable=False)
+    location = Column(String, nullable=True)
+    root_path = Column(String, nullable=True)  # TODO should become false.
+    free_space = Column(Integer, nullable=True)
+    disk_space = Column(Integer, nullable=True)
+
+    data_files = relationship("DataLoc", back_populates="data_node")
+
+
+class Data(ModelBase):
+    """Sqlalchemy data model"""
+
+    __table_args__ = {'extend_existing': True}
+    __tablename__ = "data"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    size = Column(String, nullable=False)
+    type = Column(Enum(
+        DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN,
+        name='data_type_enum'
+    ))
+    hash = Column(Integer, nullable=False)
+    upload_date = Column(DateTime, nullable=False)
+
+    data_nodes = relationship("DataLoc", back_populates="data_file")
 
 
 class ComputationNode(ModelBase):
@@ -40,36 +78,6 @@ class ComputationNode(ModelBase):
     location = Column('location', String, nullable=True)
     memory = Column('memory', Integer, nullable=True)
     cpu_power = Column('cpu_power', Integer, nullable=True)
-
-
-class Data(ModelBase):
-    """Sqlalchemy data model"""
-
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = "data"
-
-    id = Column(Integer, primary_key=True)
-    title = Column('title', String)
-    size = Column('size', String, nullable=False)
-    type = Column(Enum(
-        DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN,
-        name='data_type_enum'
-    ))
-    hash = Column('hash', Integer, nullable=False)
-    upload_date = Column('upload_date', DateTime, nullable=False)
-
-
-class DataLoc(ModelBase):
-    """Sqlalchemy fasta data model"""
-
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = "data_loc"
-
-    id = Column(Integer, primary_key=True)
-    data_id = Column('data_id', Integer, ForeignKey('data.id'))
-    data_node_id = Column('data_node_id', Integer, ForeignKey('data_node.id'))
-    file_path = Column('file_path', String, nullable=False)
-    UniqueConstraint('fasta_id', 'data_node_id')
 
 
 class UploadJob(ModelBase):
