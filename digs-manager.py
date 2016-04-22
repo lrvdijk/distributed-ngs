@@ -5,7 +5,8 @@ import warnings
 
 from digs import conf
 from digs.messaging import persistent
-from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol, db
+from digs.manager import (ManagerTransientProtocol,
+                          ManagerPersistentProtocol, db)
 from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
