@@ -19,5 +19,5 @@ class NotEnoughSpaceError(Exception):
     pass
 
 
-class UnkownHash(Exception):
+class UnknownHash(Exception):
     pass

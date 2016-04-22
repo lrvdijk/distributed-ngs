@@ -1,15 +1,19 @@
+import asyncio
 import logging
 import datetime
 from math import ceil
-from sqlalchemy import func
 from json import dumps
 
+from sqlalchemy import func
+
 from digs.common.actions import (LocateData, JobRequest, GetAllDataLocs,
-                                 RequestChunks, StoreData, StoreDataDone)
+                                 RequestChunks, StoreData, StoreDataDone,
+                                 FindOffsetsFASTQ, ChunkOffsets, PerformBWAJob)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob
+from digs.messaging import persistent
 from digs.messaging.protocol import DigsProtocolParser
-from digs.exc import NotEnoughSpaceError, UnkownHash
+from digs.exc import NotEnoughSpaceError, UnknownHash
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +76,7 @@ async def store_data_done(protocol, action):
 
     con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
     if con_job is None:
-        raise UnkownHash(
+        raise UnknownHash(
             "Currently hash found %s job not found.", action['hash']
         )
     loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
@@ -201,4 +205,55 @@ async def job_request(protocol, action):
     """This function splits a job in to multiple sub jobs and puts them in
     the worker queue."""
 
-    logger.debug("Job request: %r", action)
+    # TODO: Currently only BWA supported
+    assert action['job']['program_name'] == 'bwa'
+
+    # First, ask a data node what proper splitting offsets are
+    session = Session()
+
+    file_id = action['reads']
+    data_file = session.query(Data).filter_by(id=file_id).first()
+
+    if not data_file:
+        raise IOError("File with id {} not found".format(file_id))
+
+    reader, writer = None
+    data_assoc = None
+    for assoc in data_file.data_nodes.order_by(func.random()):
+        try:
+            # Try available data nodes until someone responds
+            reader, writer = await asyncio.open_connection(assoc.data_node.ip,
+                                                           5001)
+            data_assoc = assoc
+            break
+        except OSError:
+            reader, writer = None
+
+    if reader is None and writer is None:
+        raise IOError("No available data node found for file id {}".format(
+            file_id))
+
+    action = FindOffsetsFASTQ(file_path=data_assoc.file_path)
+    writer.write(str(action).encode())
+    await writer.drain()
+
+    response = await reader.readline()
+    parts = response.strip().split(maxsplit=1)
+
+    resp = ChunkOffsets()
+    assert parts[0] == resp.__action__
+    resp.load_from_json(parts[1])
+    writer.close()
+
+    logger.debug("Got chunk offsets: %s", resp['offsets'])
+
+    # For each chunk, create subtask in the queue for workers
+    publisher = await persistent.create_publisher()
+    for start, end in resp['offsets']:
+        action = PerformBWAJob(
+            reads_data=file_id, chunk_start=start, chunk_end=end,
+            reference_genome=action['reference_genome']
+        )
+
+        # TODO: LEss hardcoded exchanges and routing keys
+        await publisher.publish(str(action), "digs.messages", "jobs.bwa")
