@@ -139,7 +139,7 @@ async def get_all_data_locs(protocol, action):
 
     result_str = 'locate_data_results ' + dumps(results)
     print(protocol)
-    protocol.send_action(result_str)
+    await protocol.send_action(result_str)
 
 
 @transient_parser.register_handler(RequestChunks)
@@ -178,6 +178,8 @@ async def request_data_chunks(protocol, action):
         chunk_requests.append(node)
 
     logger.debug(chunk_requests)
+    result_str = 'request_data_chunks_results ' + dumps(chunk_requests)
+    await protocol.send_action(result_str)
 
 
 @persistent_parser.register_handler(JobRequest)

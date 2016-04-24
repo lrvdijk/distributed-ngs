@@ -8,10 +8,12 @@ from digs.manager.models import DataType
 
 def main():
     hash = 1111123456
-    str1 = 'locate_data '
+    str1 = 'request_data_chunks '
     data = {}
-    data['search_by'] = 'file_id'
-    data['term'] = 11
+    data['file_id'] = 1
+    data['start'] = 8
+    data['end'] = 100
+    data['chunk_size'] = 5
     str1 = str1 + json.dumps(data) + '\n'
     print(str1)
 
