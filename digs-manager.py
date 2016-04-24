@@ -79,7 +79,6 @@ def main():
     persistent_listener = loop.run_until_complete(coro)
     loop.create_task(persistent_listener.listen_for(
         "digs.messages", "action.*", 'central_queue'))
-
     coro = loop.create_server(ManagerTransientProtocol, hostname, port)
     server = loop.run_until_complete(coro)
 
