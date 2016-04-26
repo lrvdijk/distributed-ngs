@@ -33,20 +33,30 @@ async def get_data_chunk(protocol, action):
     chunk_end = action['chunk_end']
 
     file_size = os.stat(file_path).st_size
-    if file_size < chunk_end:
-        raise InvalidChunkSizeError(
-            "File does not contain this chunk size."
-        )
-    if chunk_start >= chunk_end:
-        raise InvalidChunkSizeError(
-            "Invalid chunk size (zero or smaller)."
-        )
+    if chunk_end > 0:
+        if file_size < chunk_end:
+            raise InvalidChunkSizeError(
+                "File does not contain this chunk size."
+            )
+        if chunk_start >= chunk_end:
+            raise InvalidChunkSizeError(
+                "Invalid chunk size (zero or smaller)."
+            )
+    else:
+        chunk_end = file_size
 
     with open(file_path, 'rb') as f:
         f.seek(chunk_start)
-        chunk_data = f.read(chunk_end-chunk_start)
+        size = chunk_end - chunk_start
+        bytes_sent = 0
 
-        protocol._stream_writer.write(chunk_data)
+        while bytes_sent < size:
+            num_bytes = min(4096, size-bytes_sent)
+            fdata = f.read(num_bytes)
+            protocol._stream_writer.write(fdata)
+
+            bytes_sent += num_bytes
+
         await protocol._stream_writer.drain()
 
 
