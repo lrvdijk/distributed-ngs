@@ -32,10 +32,14 @@ class JobRequest(Action):
     job = Job
 
 
-class PerformJob(Action):
-    __action__ = 'perform_job'
+class PerformBWAJob(Action):
+    __action__ = 'perform_bwa_job'
 
-    job = Job
+    reads_data = int
+    chunk_start = int
+    chunk_end = int
+
+    reference_genome = int
 
 
 class GetAllDataLocs(Action):
@@ -72,3 +76,23 @@ class StoreDataDone(Action):
     __action__ = 'store_data_done'
 
     hash = int  # hash of the data
+
+
+class GetDataChunk(Action):
+    __action__ = 'get_data_chunk'
+
+    file_path = str
+    chunk_start = int
+    chunk_end = int
+
+
+class FindOffsetsFASTQ(Action):
+    __action__ = 'find_offsets_fastq'
+
+    file_path = str
+
+
+class ChunkOffsets(Action):
+    __action__ = 'chunk_offsets'
+
+    offsets = list

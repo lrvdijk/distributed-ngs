@@ -5,7 +5,8 @@ import warnings
 
 from digs import conf
 from digs.messaging import persistent
-from digs.manager import ManagerTransientProtocol, ManagerPersistentProtocol, db
+from digs.manager import (ManagerTransientProtocol,
+                          ManagerPersistentProtocol, db)
 from digs.exc import ConfigurationError
 
 logging.basicConfig(level=logging.INFO)
@@ -71,6 +72,9 @@ def main():
         key.replace("rabbitmq.", ""): manager_settings[key]
         for key in manager_settings if key.startswith("rabbitmq.")
     }
+
+    if 'port' in rabbitmq_settings:
+        rabbitmq_settings['port'] = int(rabbitmq_settings['port'])
 
     coro = persistent.create_persistent_listener(ManagerPersistentProtocol,
                                                  **rabbitmq_settings)
