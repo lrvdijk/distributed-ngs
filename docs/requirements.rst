@@ -49,9 +49,10 @@ Must Have
 * Built a distributed system which implements a subset of the steps of a NGS 
   pipeline: Burrows-Wheeler alignment and local alignment on independent reads, 
   keeping the known best practices in mind [auwera2013fastq]_.
-* The data must be stored safely and reliably.
+* The data must be stored consistently and reliably.
 * Fault tolerant, when one of the nodes crashes it should not hinder the final 
-  results.
+  results. Able to resist one node down of any kind at the same time.
+* Scalable, must be able to handle large genomes
 
 Should have
 ^^^^^^^^^^^
