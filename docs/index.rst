@@ -7,9 +7,6 @@
 Distributed Next Generation Sequencing
 ======================================
 
-Contents
-========
-
 .. toctree::
    :maxdepth: 2
 

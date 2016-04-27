@@ -1,4 +1,5 @@
 .. _section-discussion:
 
+==========
 Discussion
 ==========

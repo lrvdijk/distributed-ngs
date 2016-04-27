@@ -16,11 +16,12 @@ An overview of the system can be seen in :numref:`fig-overview`.
 .. _fig-overview:
 
 .. figure:: img/overview.png
+    :scale: 50 %
 
     Global system overview
 
 Central Managers
-----------------
+================
 
 The central managers are the most intelligent nodes of the system, and try to 
 coordinate the whole NGS pipeline. Central managers keep track which datasets 
@@ -39,7 +40,7 @@ distributed system for a single company or research group), and therefore the
 chance of a network partition is considered low.
 
 Data Nodes
-----------
+==========
 
 All datasets are stored on dedicated "data nodes". To prevent any data loss, 
 and to retain high availability of the data, the central manager makes sure 
@@ -53,7 +54,7 @@ to split a file in multiple chunks, while maintaining the structure in the
 data. 
 
 Computational Worker Nodes
---------------------------
+==========================
 
 The worker nodes are the power horses in our system: they perform the actual 
 computationally intensive operations on datasets. The central managers build a 
@@ -76,7 +77,7 @@ Task Descriptions
 In this section we discuss the steps required to perform several tasks. 
 
 Upload Dataset
---------------
+==============
 
 1. Request from a random central manager a data node that is available and has 
    enough diskspace for the new dataset
@@ -93,13 +94,13 @@ several GB's somewhere.
 .. _fig-upload:
 
 .. figure:: img/upload.png
-    :scale: 80 %
+    :scale: 50 %
 
     Schematic overview of all steps required to upload a dataset.
 
 
 Job Request
------------
+===========
 
 1. Client sends a job request to the manager: which kind of program, on which 
    dataset
@@ -117,7 +118,7 @@ afterwards.
 .. _fig-job-request:
 
 .. figure:: img/job_request.png
-    :scale: 80 %
+    :scale: 50 %
 
     Steps to perform a large job
 

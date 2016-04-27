@@ -228,8 +228,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Digs.tex', 'Digs Documentation',
-     'Tycho Marinus \\textless{}main@tmarinus.nl\\textgreater{}, Lucas van Dijk \\textless{}info@return1.net\\textgreater{}', 'manual'),
+    (master_doc, 'Digs.tex', 'Digs: Distributed Next Generation Sequencing',
+     r'Tycho Marinus \textless{}main@tmarinus.nl\textgreater{},\\ Lucas van Dijk \textless{}info@return1.net\textgreater{}', 'howto'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -251,6 +251,7 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_domain_indices = True
+
 
 
 # -- Options for manual page output ---------------------------------------
