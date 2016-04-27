@@ -1,3 +1,4 @@
+============
 Requirements
 ============
 
@@ -66,7 +67,7 @@ Could Have
 * Data-ownership: who can see which datasets
 
 .. [auwera2013fastq] 
-    Auwera, G. A., Carneiro, M. O., Hartl, C., Poplin, R., del 
-    Angel, G., Levy‐Moonshine, A., ... & Banks, E. (2013). From FastQ data to 
+    Auwera, G. A., Carneiro, M. O., Hartl, C., Poplin, R., del Angel, G., 
+    Levy‐Moonshine, A., ... and Banks, E. (2013). From FastQ data to 
     high‐confidence variant calls: the genome analysis toolkit best practices 
     pipeline. *Current Protocols in Bioinformatics*, 11-10.

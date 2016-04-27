@@ -1,5 +1,6 @@
 .. _section-system-design:
 
+=============
 System Design
 =============
 
@@ -10,7 +11,7 @@ scheduling. There are three kind of nodes:
 * Data nodes
 * Computational worker nodes
 
-An overview of the system can be seen in :ref:`fig-overview`.
+An overview of the system can be seen in :numref:`fig-overview`.
 
 .. _fig-overview:
 
@@ -68,6 +69,7 @@ data node again.
 
 .. _section-tasks:
 
+=================
 Task Descriptions
 =================
 
@@ -83,17 +85,39 @@ Upload Dataset
 4. The central manager coordinates the data duplication, and makes sure the 
    dataset is stored on two data nodes.
 
-A schematic overview can be seen in :ref:`fig-upload`.
+A schematic overview can be seen in :numref:`fig-upload`. All this 
+communication is transient: it only makes sense to transfer the data if the 
+data node is available, and otherwise you would need to store a dataset of 
+several GB's somewhere.
 
 .. _fig-upload:
 
 .. figure:: img/upload.png
     :scale: 80 %
 
-    Steps to upload a dataset
+    Schematic overview of all steps required to upload a dataset.
 
 
 Job Request
 -----------
 
+1. Client sends a job request to the manager: which kind of program, on which 
+   dataset
+2. Central manager divides the job in subtasks, and puts all subtasks on a job 
+   queue. Available workers can pick these subtasks from the queue.
+3. Worker nodes download the corresponding datasets or chunks from the data 
+   nodes, and start performing the task.
+4. Results can be stored on data nodes again.
+
+A schematic overview can be found in :numref:`fig-job-request`. Most of this 
+communication is persistent: clients can send a persistent message to the 
+central manager, and can periodically check if their job has finished 
+afterwards.
+
+.. _fig-job-request:
+
+.. figure:: img/job_request.png
+    :scale: 80 %
+
+    Steps to perform a large job
 
