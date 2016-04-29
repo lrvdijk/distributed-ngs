@@ -74,6 +74,9 @@ def main():
         for key in manager_settings if key.startswith("rabbitmq.")
     }
 
+    if 'port' in rabbitmq_settings:
+        rabbitmq_settings['port'] = int(rabbitmq_settings['port'])
+
     coro = persistent.create_persistent_listener(ManagerPersistentProtocol,
                                                  **rabbitmq_settings)
     persistent_listener = loop.run_until_complete(coro)
