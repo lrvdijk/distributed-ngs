@@ -12,15 +12,6 @@ exec 2>&1
 
 mkdir /distributed
 
-IP = "$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3})')"
-USED = "$(df / | grep / | cut -d ' ' -f9)"
-TOTAL = "$(df / | grep / | cut -d ' ' -f12)"
-FREE = $TOTAL - $USED
-
-cat "IP=$IP" >> "node-settings.conf"
-cat "TOTAL=$TOTAL" >> "node-settings.conf"
-cat "FREE=$FREE" >> "node-settings.conf"
-
 cd /distributed
 mkdir dataFiles
 
@@ -28,6 +19,15 @@ git clone https://github.com/sh4wn/distributed-ngs.git
 #TMP go to postgresql branch
 cd distributed-ngs
 git checkout postgreSQL
+
+IP="$(ip -4 addr show ens4 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')"
+USED="$(df / | grep / | cut -d ' ' -f9)"
+TOTAL="$(df / | grep / | cut -d ' ' -f12)"
+FREE=$(expr $TOTAL - $USED)
+echo "IP=$IP" >> "node_settings.py"
+echo "TOTAL=$TOTAL" >> "node_settings.py"
+echo "FREE=$FREE" >> "node_settings.py"
+
 export LC_ALL=C
 apt-get install -y erlang-nox python3-pip libpq-dev python-dev python-sqlalchemy postgresql postgresql-contrib
 locale-gen en_US.UTF-8

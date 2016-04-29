@@ -83,7 +83,6 @@ class RegisterDataNode(Action):
 
     ip = int  # Ip of the node
     socket = int  # socket used for node
-    location = str  # location
     free_space = int  # free space
     disk_space = int  # total disk space
     root_path = str  # location to store data

@@ -200,7 +200,6 @@ async def register_data_node(protocol, action):
     datanode = DataNode(title="dataNode",
                         ip=action['ip'],
                         socket=action['socket'],
-                        location=action['location'],
                         free_space=action['free_space'],
                         disk_space=action['disk_space'],
                         root_path=action['root_path'],
