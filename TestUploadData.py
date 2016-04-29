@@ -20,7 +20,7 @@ def main():
         host = sys.argv[0]
         port = int(sys.argv[1])
     else:
-        host = "127.0.0.1"
+        host = "localhost"
         port = 31415
 
     family, type, proto, _, addr = socket.getaddrinfo(

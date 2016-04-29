@@ -77,3 +77,13 @@ class StoreDataDone(Action):
     __action__ = 'store_data_done'
 
     hash = int  # hash of the data
+
+class RegisterDataNode(Action):
+    __action__ = 'register_data_node'
+
+    ip = int  # Ip of the node
+    socket = int  # socket used for node
+    location = str  # location
+    free_space = int  # free space
+    disk_space = int  # total disk space
+    root_path = str  # location to store data

@@ -14,6 +14,11 @@ class DataType:
     TEXT = 'text'
     SHOTGUN = 'shotgun'
 
+class Status:
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    UNKNOWN = 'unknown'
+
 
 class DataNode(ModelBase):
     __table_args__ = {'extend_existing': True}
@@ -28,6 +33,7 @@ class DataNode(ModelBase):
     root_path = Column('root_path', String, nullable=True)  # TODO should become false.
     free_space = Column('free_space', Integer, nullable=True)
     disk_space = Column('disk_space', Integer, nullable=True)
+    status = Column(Enum(Status.ACTIVE, Status.INACTIVE, Status.UNKNOWN, name='status_enum'))
 
 
 class ComputationNode(ModelBase):

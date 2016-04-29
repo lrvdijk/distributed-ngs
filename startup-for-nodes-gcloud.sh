@@ -11,7 +11,19 @@ exec > >(tee -i logfile.txt)
 exec 2>&1
 
 mkdir /distributed
+
+IP = "$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3})')"
+USED = "$(df / | grep / | cut -d ' ' -f9)"
+TOTAL = "$(df / | grep / | cut -d ' ' -f12)"
+FREE = $TOTAL - $USED
+
+cat "IP=$IP" >> "node-settings.conf"
+cat "TOTAL=$TOTAL" >> "node-settings.conf"
+cat "FREE=$FREE" >> "node-settings.conf"
+
 cd /distributed
+mkdir dataFiles
+
 git clone https://github.com/sh4wn/distributed-ngs.git
 #TMP go to postgresql branch
 cd distributed-ngs
@@ -50,5 +62,8 @@ echo "done restarting services"
 
 sudo -u postgres createdb manager_server
 sudo -u postgres psql -U postgres -d manager_server -c "alter user postgres with password 'manager';"
+python3 add_test_data.py
 
 touch /testScriptDone
+
+#// listen_addresses='localhost' 

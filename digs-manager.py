@@ -45,7 +45,7 @@ def main():
                                  "'manager' section.")
     manager_settings = conf.settings['manager']
 
-    hostname = "127.0.0.1"
+    hostname = ""
     port = 31415
     if args.hostname:
         hostname = args.hostname

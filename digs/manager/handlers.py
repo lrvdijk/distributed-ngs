@@ -6,8 +6,9 @@ from json import dumps
 
 
 from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
+from digs.common.actions import (RegisterDataNode)
 from digs.manager.db import Session
-from digs.manager.models import DataLoc, DataNode, Data, UploadJob
+from digs.manager.models import DataLoc, DataNode, Data, UploadJob, Status
 from digs.messaging.protocol import DigsProtocolParser
 from digs.common.actions import LocateData, JobRequest
 from digs.exc import NotEnoughSpaceError, UnkownHash
@@ -188,3 +189,22 @@ async def job_request(protocol, action):
     the worker queue."""
 
     logger.debug("Job request: %r", action)
+
+
+@persistent_parser.register_handler(RegisterDataNode)
+async def register_data_node(protocol, action):
+    """This function registers a new data node at the manager."""
+
+    logger.debug("Register data node: %r", action)
+    session = Session()
+    datanode = DataNode(title="dataNode",
+                        ip=action['ip'],
+                        socket=action['socket'],
+                        location=action['location'],
+                        free_space=action['free_space'],
+                        disk_space=action['disk_space'],
+                        root_path=action['root_path'],
+                        status=Status.ACTIVE,
+                        )
+    session.add(datanode)
+    session.commit()
