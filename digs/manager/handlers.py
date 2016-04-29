@@ -34,6 +34,9 @@ async def register_data_node(protocol, action):
     session.add(datanode)
     session.commit()
 
+    result_str = 'register_data_node_succes '
+    await protocol.send_action(result_str)
+
 
 @transient_parser.register_handler(StoreData)
 async def store_data(protocol, action):

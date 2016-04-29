@@ -80,7 +80,7 @@ class StoreDataDone(Action):
 class RegisterDataNode(Action):
     __action__ = 'register_data_node'
 
-    ip = int  # Ip of the node
+    ip = str  # Ip of the node
     socket = int  # socket used for node
     free_space = int  # free space
     disk_space = int  # total disk space
