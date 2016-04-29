@@ -18,12 +18,11 @@ transient_parser = DigsProtocolParser()
 persistent_parser = DigsProtocolParser()
 
 
-@persistent_parser.register_handler(RegisterDataNode)
+@transient_parser.register_handler(RegisterDataNode)
 async def register_data_node(protocol, action):
     """This function registers a new data node at the manager."""
-
-    logger.debug("register_data_node call: %r, %r", protocol, action)
     session = Session()
+    logger.debug("register_data_node call: %r, %r", protocol, action)
     datanode = DataNode(title="dataNode",
                         ip=action['ip'],
                         socket=action['socket'],
