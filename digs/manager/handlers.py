@@ -5,8 +5,7 @@ from sqlalchemy import func
 from json import dumps
 
 
-from digs.common.actions import (HeartBeat, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
-from digs.common.actions import (RegisterDataNode)
+from digs.common.actions import (RegisterDataNode, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob, Status
 from digs.messaging.protocol import DigsProtocolParser
@@ -17,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 transient_parser = DigsProtocolParser()
 persistent_parser = DigsProtocolParser()
+
 
 @transient_parser.register_handler(StoreData)
 async def store_data(protocol, action):
@@ -60,6 +60,7 @@ async def store_data(protocol, action):
     result = {'ip': loc.ip, 'socket': loc.socket, 'upload_path': loc.root_path}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
+
 
 @transient_parser.register_handler(StoreDataDone)
 async def store_data_done(protocol, action):
