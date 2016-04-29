@@ -18,6 +18,24 @@ transient_parser = DigsProtocolParser()
 persistent_parser = DigsProtocolParser()
 
 
+@persistent_parser.register_handler(RegisterDataNode)
+async def register_data_node(protocol, action):
+    """This function registers a new data node at the manager."""
+
+    logger.debug("register_data_node call: %r, %r", protocol, action)
+    session = Session()
+    datanode = DataNode(title="dataNode",
+                        ip=action['ip'],
+                        socket=action['socket'],
+                        free_space=action['free_space'],
+                        disk_space=action['disk_space'],
+                        root_path=action['root_path'],
+                        status=Status.ACTIVE,
+                        )
+    session.add(datanode)
+    session.commit()
+
+
 @transient_parser.register_handler(StoreData)
 async def store_data(protocol, action):
     """This function handles a request from a client to upload a dataset."""
@@ -188,23 +206,6 @@ async def request_data_chunks(protocol, action):
 async def job_request(protocol, action):
     """This function splits a job in to multiple sub jobs and puts them in
     the worker queue."""
-
     logger.debug("Job request: %r", action)
 
 
-@persistent_parser.register_handler(RegisterDataNode)
-async def register_data_node(protocol, action):
-    """This function registers a new data node at the manager."""
-
-    logger.debug("Register data node: %r", action)
-    session = Session()
-    datanode = DataNode(title="dataNode",
-                        ip=action['ip'],
-                        socket=action['socket'],
-                        free_space=action['free_space'],
-                        disk_space=action['disk_space'],
-                        root_path=action['root_path'],
-                        status=Status.ACTIVE,
-                        )
-    session.add(datanode)
-    session.commit()

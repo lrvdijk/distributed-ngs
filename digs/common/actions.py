@@ -1,6 +1,5 @@
 from digs.messaging.serialization import Serializable
 from digs.messaging.actions import Action
-from digs.manager.models import DataType
 
 
 class HeartBeat(Action):
