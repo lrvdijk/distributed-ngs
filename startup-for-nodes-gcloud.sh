@@ -32,13 +32,23 @@ python3 -m pip install psycopg2
 
 echo "restarting services"
 service rabbitmq-server start
-service postgresql status
+service postgresql restart
 service postgresql start
-service postgresql status
-service postgresql start
-service postgresql status
 echo "done restarting services"
+
 
 sudo -u postgres createdb manager_server
 sudo -u postgres psql -U postgres -d manager_server -c "alter user postgres with password 'manager';"
+
+echo "restarting services"
+service rabbitmq-server start
+service postgresql restart
+service postgresql start
+/etc/init.d/postgresql restart
+echo "done restarting services"
+
+
+sudo -u postgres createdb manager_server
+sudo -u postgres psql -U postgres -d manager_server -c "alter user postgres with password 'manager';"
+
 touch /testScriptDone
