@@ -41,6 +41,8 @@ python3 -m pip install psycopg2
 
 python3 register-data-node.py
 
+python3 digs-data-node.py >> node-logger.log &
+
 touch /testScriptDone
 
 #// listen_addresses='localhost' 

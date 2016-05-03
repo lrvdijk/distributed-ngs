@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Digs'
-copyright = '2016, Tycho Marinus <main@tmarinus.nl>, Lucas van Dijk <info@return1.net>'
+copyright = '2016, Tycho Marinus <mail@tmarinus.nl>, Lucas van Dijk <info@return1.net>'
 author = 'Tycho Marinus <main@tmarinus.nl>, Lucas van Dijk <info@return1.net>'
 
 # The version info for the project you're documenting, acts as replacement for
