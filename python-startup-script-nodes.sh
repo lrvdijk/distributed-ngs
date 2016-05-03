@@ -1,14 +1,13 @@
 #! /bin/bash
-apt-get update
-if [ -f /test ]; then
-	exit 0
-fi
-cat <<EOF > /test
-check
-EOF
 # Redirect stdout ( > ) into a named pipe ( >() ) running "tee"
 exec > >(tee -i logfile.txt)
 exec 2>&1
+
+apt-get update
+
+cat <<EOF > /test
+check
+EOF
 
 mkdir /distributed
 
