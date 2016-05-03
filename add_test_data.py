@@ -1,14 +1,13 @@
 from digs.manager.models import Data, DataNode, DataLoc, DataType, UploadJob
 from digs.manager import db
 import time
-import datetime
 from datetime import datetime
 
 
 def main():
 
     # TODO: database settings in configuration file?
-    db.initialize_db("sqlite:///manager.db")
+    db.initialize_db("postgresql://lucas@localhost/manager_server")
     session = db.Session()
     db.create_tables()
 

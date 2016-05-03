@@ -98,7 +98,7 @@ class PersistentListener:
 
         self.channel = channel
 
-    async def listen_for(self, exchange, topic, queue_name=''):
+    async def listen_for_topic(self, exchange, topic, queue_name=''):
         await self.channel.exchange(exchange, type_name='topic')
 
         # Exclusive queue with random name for this listener
@@ -113,6 +113,9 @@ class PersistentListener:
 
         return await self.channel.basic_consume(self._on_message,
                                                 queue['queue'])
+
+    async def basic_consume(self, queue_name):
+        return await self.channel.basic_consume(self._on_message, queue_name)
 
     async def _on_message(self, channel, body, envelope, properties):
         protocol = self.protocol_factory(channel, body, envelope,
@@ -166,8 +169,13 @@ class PersistentPublisher:
         # TODO
 
     async def publish(self, body, exchange_name, routing_key,
-                      expect_reply=False):
+                      expect_reply=False, persistent=True):
         properties = None
+        if persistent:
+            properties = {
+                'delivery_mode': 2
+            }
+
         if expect_reply:
             if not self.reply_queue:
                 raise MessagingError(

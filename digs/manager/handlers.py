@@ -1,16 +1,21 @@
+import asyncio
 import logging
 import datetime
 from math import ceil
-from sqlalchemy import func
 from json import dumps
 
+from sqlalchemy import func
 
-from digs.common.actions import (RegisterDataNode, LocateData, JobRequest, GetAllDataLocs, RequestChunks, StoreData, StoreDataDone)
-from digs.manager.db import Session
+from digs.common.actions import (RegisterDataNode)
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob, Status
+from digs.common.actions import (LocateData, JobRequest, GetAllDataLocs,
+                                 RequestChunks, StoreData, StoreDataDone,
+                                 FindOffsetsFASTA, ChunkOffsets, PerformMAFFT)
+from digs.manager.db import Session
+from digs.manager.models import DataLoc, DataNode, Data, UploadJob
+from digs.messaging import persistent
 from digs.messaging.protocol import DigsProtocolParser
-from digs.common.actions import LocateData, JobRequest
-from digs.exc import NotEnoughSpaceError, UnkownHash
+from digs.exc import NotEnoughSpaceError, UnknownHash
 
 logger = logging.getLogger(__name__)
 
@@ -53,18 +58,21 @@ async def store_data(protocol, action):
 
     con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
 
-    if con_job is not None:  # The hash already exists in job list, continue work
+    # The hash already exists in job list, continue work
+    if con_job is not None:
         logger.debug("Hash found in jobs returning previous data node.")
-        loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
+        loc = session.query(DataNode).filter_by(
+            id=con_job.data_node_id).first()
     else:  # New task found, get random DataNode
         logger.debug("New job, getting random DataNode.")
-        loc = session.query(DataNode).filter(DataNode.free_space > action['size']).order_by(func.random()).first()
+        loc = session.query(DataNode).filter(
+            DataNode.free_space > action['size']).order_by(
+            func.random()).first()
         if loc is None:
             logger.debug("loc is None")
             raise NotEnoughSpaceError(
                 "Currently no nodes found with %s free space.", action['size']
             )
-            return
 
         date = datetime.datetime.now()
         new_job = UploadJob(data_node_id=loc.id,
@@ -91,7 +99,7 @@ async def store_data_done(protocol, action):
 
     con_job = session.query(UploadJob).filter_by(hash=action['hash']).first()
     if con_job is None:
-        raise UnkownHash(
+        raise UnknownHash(
             "Currently hash found %s job not found.", action['hash']
         )
     loc = session.query(DataNode).filter_by(id=con_job.data_node_id).first()
@@ -136,9 +144,11 @@ async def locate_data(protocol, action):
         await protocol.send_action(result_str)
         return
 
-    data = session.query(DataLoc).filter_by(data_id=file_id).order_by(func.random()).first()
+    data = session.query(DataLoc).filter_by(data_id=file_id).order_by(
+        func.random()).first()
     if data is None:
-        message = "Could not locate file using: " + action['search_by'] + " : " + action['term']
+        message = ("Could not locate file using: " + action['search_by'] +
+                   " : " + action['term'])
         result = {'err': message}
         result_str = 'locate_data_err ' + dumps(result)
         await protocol.send_action(result_str)
@@ -151,14 +161,18 @@ async def locate_data(protocol, action):
 
 @transient_parser.register_handler(GetAllDataLocs)
 async def get_all_data_locs(protocol, action):
-    """This function handles a request from a client to get_all_data_locations of a dataset."""
+    """This function handles a request from a client to get_all_data_locations
+    of a dataset."""
+
     session = Session()
     logger.debug("GetAllDataLocs call: %r, %r", protocol, action)
     logger.debug("action filenames: %s", action['file_id'])
     results = []
-    for row in session.query(DataLoc).filter_by(data_id=action['file_id']).all():
+    for row in session.query(DataLoc).filter_by(
+            data_id=action['file_id']).all():
         loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
-        results.append({'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
+        results.append(
+            {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
 
     result_str = 'locate_data_results ' + dumps(results)
     print(protocol)
@@ -177,7 +191,7 @@ async def request_data_chunks(protocol, action):
     end = int(action['end'])
     chunk_size = int(action['chunk_size'])
 
-    #TODO validate data parameters?
+    # TODO validate data parameters?
 
     tot_size = end - start
     num_chunks = ceil(tot_size / chunk_size)
@@ -188,14 +202,20 @@ async def request_data_chunks(protocol, action):
 
     chunk_requests = []
     chunk_start = start
-    for idx, row in enumerate(session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
+    for idx, row in enumerate(
+            session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
         loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
-        node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path, 'chunks': []}
+        node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path,
+                'chunks': []}
         for j in range(0, chunk_per_loc):
-            node['chunks'].append({'chunk_start': chunk_start, 'chunk_end': min(chunk_start+chunk_size, end)})
+            node['chunks'].append({'chunk_start': chunk_start,
+                                   'chunk_end': min(chunk_start + chunk_size,
+                                                    end)})
             chunk_start += chunk_size
         if idx < chunks_left:  # Add leftover chunks spread over first nodes
-            node['chunks'].append({'chunk_start': chunk_start, 'chunk_end': min(chunk_start + chunk_size, end)})
+            node['chunks'].append({'chunk_start': chunk_start,
+                                   'chunk_end': min(chunk_start + chunk_size,
+                                                    end)})
             chunk_start += chunk_size
 
         chunk_requests.append(node)
@@ -209,6 +229,52 @@ async def request_data_chunks(protocol, action):
 async def job_request(protocol, action):
     """This function splits a job in to multiple sub jobs and puts them in
     the worker queue."""
-    logger.debug("Job request: %r", action)
 
+    # TODO: Currently only MAFFT supported
+    assert action['job']['program_name'] == 'mafft'
 
+    # First, ask a data node what proper splitting offsets are
+    session = Session()
+
+    file_id = action['job']['sequences']
+    data_file = session.query(Data).get(id=file_id)
+
+    reader, writer = None
+    data_assoc = None
+    for assoc in data_file.data_nodes.order_by(func.random()):
+        try:
+            # Try available data nodes until someone responds
+            reader, writer = await asyncio.open_connection(assoc.data_node.ip,
+                                                           5001)
+            data_assoc = assoc
+            break
+        except OSError:
+            reader, writer = None
+
+    if reader is None and writer is None:
+        raise IOError("No available data node found for file id {}".format(
+            file_id))
+
+    action = FindOffsetsFASTA(file_path=data_assoc.file_path)
+    writer.write(str(action).encode())
+    await writer.drain()
+
+    response = await reader.readline()
+    parts = response.strip().split(maxsplit=1)
+
+    resp = ChunkOffsets()
+    assert parts[0] == resp.__action__
+    resp.load_from_json(parts[1])
+    writer.close()
+
+    logger.debug("Got chunk offsets: %s", resp['offsets'])
+
+    # For each chunk, create subtask in the queue for workers
+    publisher = await persistent.create_publisher()
+    for start, end in resp['offsets']:
+        action = PerformMAFFT(
+            sequences_data=file_id, chunk_start=start, chunk_end=end
+        )
+
+        # Publish to default exchange and jobs.mafft queue.
+        await publisher.publish(str(action), "", "jobs.mafft")

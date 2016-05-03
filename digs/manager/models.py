@@ -1,4 +1,3 @@
-import enum
 from sqlalchemy import Enum, Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,6 +19,23 @@ class Status:
     UNKNOWN = 'unknown'
 
 
+class DataLoc(ModelBase):
+    """Association table between data files and data nodes. A data file can
+    be replicated across multiple nodes."""
+
+    __table_args__ = {'extend_existing': True}
+    __tablename__ = "data_loc"
+
+    data_id = Column(Integer, ForeignKey('data.id'),
+                     primary_key=True)
+    data_node_id = Column(Integer, ForeignKey('data_node.id'),
+                          primary_key=True)
+    file_path = Column(String, nullable=False)
+
+    data_node = relationship("DataNode", back_populates="data_files")
+    data_file = relationship("Data", back_populates="data_nodes")
+
+
 class DataNode(ModelBase):
     __table_args__ = {'extend_existing': True}
     """Sqlalchemy data node model"""
@@ -35,10 +51,30 @@ class DataNode(ModelBase):
     disk_space = Column('disk_space', Integer, nullable=True)
     status = Column(Enum(Status.ACTIVE, Status.INACTIVE, Status.UNKNOWN, name='status_enum'))
 
+    data_files = relationship("DataLoc", back_populates="data_node")
+
+class Data(ModelBase):
+    """Sqlalchemy data model"""
+
+    __table_args__ = {'extend_existing': True}
+    __tablename__ = "data"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    size = Column(String, nullable=False)
+    type = Column(Enum(
+        DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN,
+        name='data_type_enum'
+    ))
+    hash = Column(Integer, nullable=False)
+    upload_date = Column(DateTime, nullable=False)
+
+    data_nodes = relationship("DataLoc", back_populates="data_file")
+
 
 class ComputationNode(ModelBase):
-    __table_args__ = {'extend_existing': True}
     """Sqlalchemy computation node model"""
+    __table_args__ = {'extend_existing': True}
     __tablename__ = "computation_node"
 
     id = Column(Integer, primary_key=True)
@@ -48,34 +84,11 @@ class ComputationNode(ModelBase):
     memory = Column('memory', Integer, nullable=True)
     cpu_power = Column('cpu_power', Integer, nullable=True)
 
-class Data(ModelBase):
-    __table_args__ = {'extend_existing': True}
-    """Sqlalchemy data model"""
-    __tablename__ = "data"
-
-    id = Column(Integer, primary_key=True)
-    title = Column('title', String)
-    size = Column('size', String, nullable=False)
-    type = Column(Enum(DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN, name='data_type_enum'))
-    hash = Column('hash', Integer, nullable=False)
-    upload_date = Column('upload_date', DateTime, nullable=False)
-
-
-class DataLoc(ModelBase):
-    __table_args__ = {'extend_existing': True}
-    """Sqlalchemy fasta data model"""
-    __tablename__ = "data_loc"
-
-    id = Column(Integer, primary_key=True)
-    data_id = Column('data_id', Integer, ForeignKey('data.id'))
-    data_node_id = Column('data_node_id', Integer, ForeignKey('data_node.id'))
-    file_path = Column('file_path', String, nullable=False)
-    UniqueConstraint('fasta_id', 'data_node_id')
-
 
 class UploadJob(ModelBase):
-    __table_args__ = {'extend_existing': True}
     """Sqlalchemy fasta upload job model"""
+
+    __table_args__ = {'extend_existing': True}
     __tablename__ = "upload_job"
 
     id = Column(Integer, primary_key=True)
@@ -83,7 +96,10 @@ class UploadJob(ModelBase):
     file_path = Column('file_path', String)
     title = Column('title', String)
     size = Column('size', String, nullable=False)
-    type = Column(Enum(DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN, name='data_type_enum'))
+    type = Column(Enum(
+        DataType.FASTA, DataType.RESULTS, DataType.TEXT, DataType.SHOTGUN,
+        name='data_type_enum'
+    ))
     upload_date = Column('upload_date', DateTime, nullable=False)
     client_id = Column('client_id', Integer)
     client_name = Column('client_name', String)

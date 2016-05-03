@@ -4,10 +4,10 @@ import logging
 import warnings
 
 from digs import conf
-from digs.messaging import persistent
 from digs.common.actions import JobRequest, Job
+from digs.common.utils import get_random_central_server
 from digs.exc import ConfigurationError
-from digs.client.utils import get_random_central_server
+from digs.messaging import persistent
 
 logging.basicConfig(level=logging.INFO)
 

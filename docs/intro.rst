@@ -1,3 +1,4 @@
+============
 Introduction
 ============
 
@@ -25,4 +26,5 @@ Decap et al. already built a similar system using Hadoop [decap2015halvade]_.
 In this assignment we will focus on the distributed system, and initially only
 implement a subset of the steps instead of the whole NGS pipeline.
 
-.. [decap2015halvade] Decap, D., Reumers, J., Herzeel, C., Costanza, P., & Fostier, J. (2015). Halvade: scalable sequence analysis with MapReduce. *Bioinformatics*, 31(15), 2482-2488.
+.. [decap2015halvade] 
+   Decap, D., Reumers, J., Herzeel, C., Costanza, P., & Fostier, J. (2015). Halvade: scalable sequence analysis with MapReduce. *Bioinformatics*, 31(15), 2482-2488.

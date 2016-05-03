@@ -32,22 +32,18 @@ class JobRequest(Action):
     job = Job
 
 
-class PerformJob(Action):
-    __action__ = 'perform_job'
+class PerformMAFFT(Action):
+    __action__ = 'perform_bwa_job'
 
-    job = Job
-
-
-class LocateData(Action):
-    __action__ = 'locate_data'
-
-    filenames = list
+    sequences_data = int
+    chunk_start = int
+    chunk_end = int
 
 
 class GetAllDataLocs(Action):
     __action__ = 'get_all_data_locs'
 
-    file_id = int # data id
+    file_id = int  # data id
 
 
 class LocateData(Action):
@@ -65,6 +61,7 @@ class RequestChunks(Action):
     end = int  # end value of chunks
     chunk_size = int  # size of chunks
 
+
 class StoreData(Action):
     __action__ = 'store_data'
 
@@ -72,10 +69,12 @@ class StoreData(Action):
     size = int  # size of the shotgun read file in bytes.
     type = str  # the type of data to store
 
+
 class StoreDataDone(Action):
     __action__ = 'store_data_done'
 
     hash = int  # hash of the data
+
 
 class RegisterDataNode(Action):
     __action__ = 'register_data_node'
@@ -85,3 +84,27 @@ class RegisterDataNode(Action):
     free_space = int  # free space
     disk_space = int  # total disk space
     root_path = str  # location to store data
+
+
+class GetDataChunk(Action):
+    __action__ = 'get_data_chunk'
+
+    file_path = str
+    chunk_start = int
+    chunk_end = int
+
+
+class FindOffsetsFASTQ(Action):
+    __action__ = 'find_offsets_fastq'
+
+    file_path = str
+
+
+class FindOffsetsFASTA(Action):
+    __action__ = 'find_offsets_fasta'
+
+
+class ChunkOffsets(Action):
+    __action__ = 'chunk_offsets'
+
+    offsets = list

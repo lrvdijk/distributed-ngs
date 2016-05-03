@@ -7,12 +7,12 @@
 Distributed Next Generation Sequencing
 ======================================
 
-Contents
-========
-
 .. toctree::
    :maxdepth: 2
 
    intro
    requirements
    system_design
+   experiments
+   discussion
+   conclusion
