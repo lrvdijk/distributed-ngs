@@ -251,5 +251,5 @@ async def job_request(protocol, action):
             sequences_data=file_id, chunk_start=start, chunk_end=end
         )
 
-        # TODO: LEss hardcoded exchanges and routing keys
-        await publisher.publish(str(action), "digs.messages", "jobs.mafft")
+        # Publish to default exchange and jobs.mafft queue.
+        await publisher.publish(str(action), "", "jobs.mafft")

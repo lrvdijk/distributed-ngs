@@ -79,7 +79,7 @@ def main():
     coro = persistent.create_persistent_listener(ManagerPersistentProtocol,
                                                  **rabbitmq_settings)
     persistent_listener = loop.run_until_complete(coro)
-    loop.create_task(persistent_listener.listen_for(
+    loop.create_task(persistent_listener.listen_for_topic(
         "digs.messages", "action.*", 'central_queue'))
 
     coro = loop.create_server(ManagerTransientProtocol, hostname, port)
