@@ -59,6 +59,7 @@ service postgresql start
 /etc/init.d/postgresql restart
 echo "done restarting services"
 
+sleep 20
 
 sudo -u postgres createdb manager_server
 sudo -u postgres psql -U postgres -d manager_server -c "alter user postgres with password 'manager';"

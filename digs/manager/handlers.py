@@ -34,7 +34,8 @@ async def register_data_node(protocol, action):
     session.add(datanode)
     session.commit()
 
-    result_str = 'register_data_node_succes '
+    results = {'succes': 'yes'}
+    result_str = 'register_data_node_succes ' + dumps(results)
     await protocol.send_action(result_str)
 
 
