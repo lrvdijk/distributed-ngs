@@ -3,9 +3,10 @@ import asyncio
 import json
 import logging
 import uuid
+import subprocess
 
 from digs.common.utils import connect_to_random_central_server
-from digs.common.actions import PerformBWAJob, LocateData, GetDataChunk
+from digs.common.actions import PerformMAFFT, LocateData, GetDataChunk
 from digs.messaging.protocol import DigsProtocolParser
 from digs.messaging.persistent import PersistentProtocol
 
@@ -19,8 +20,8 @@ class WorkerProtocol(PersistentProtocol):
         return persistent_parser
 
 
-@persistent_parser.register_handler(PerformBWAJob)
-async def perform_bwa(protocol, action):
+@persistent_parser.register_handler(PerformMAFFT)
+async def perform_mafft(protocol, action):
     logger.debug("Accepting job: %s", action)
     # Retrieve chunk from data node
     # But first find the corresponding data nodes for the reads data and the
@@ -28,7 +29,7 @@ async def perform_bwa(protocol, action):
     reader, writer = await connect_to_random_central_server()
 
     writer.send(str(
-        LocateData(search_by='file_id', term=action['reads_data'])
+        LocateData(search_by='file_id', term=action['sequences_dataset'])
     ))
     await writer.drain()
 
@@ -37,21 +38,8 @@ async def perform_bwa(protocol, action):
     parts = data.strip().split(maxsplit=1)
 
     assert parts[0] == 'locate_data_result'
-    reads_datanode = json.loads(parts[1])
-    logger.info("Reads data node: %s", reads_datanode)
-
-    writer.send(str(
-        LocateData(search_by='file_id', term=action['reference_genome'])
-    ))
-    await writer.drain()
-
-    data = await reader.readline()
-    logger.debug("Received data: %s", data)
-    parts = data.strip().split(maxsplit=1)
-
-    assert parts[0] == 'locate_data_result'
-    reference_genome_datanode = json.loads(parts[1])
-    logger.info("Reference genome node: %s", reference_genome_datanode)
+    sequences_datanode = json.loads(parts[1])
+    logger.info("Reads data node: %s", sequences_datanode)
 
     writer.close()
 
@@ -61,10 +49,11 @@ async def perform_bwa(protocol, action):
     os.makedirs(path, exist_ok=True)
 
     # Download reads data chunk
-    reader, writer = await asyncio.open_connection(reads_datanode['ip'], 5001)
+    reader, writer = await asyncio.open_connection(sequences_datanode['ip'],
+                                                   5001)
     writer.write(str(
         GetDataChunk(
-            file_path=reads_datanode['path'],
+            file_path=sequences_datanode['path'],
             chunk_start=action['chunk_start'],
             chunk_end=action['chunk_end']
         )
@@ -73,7 +62,7 @@ async def perform_bwa(protocol, action):
     size = action['chunk_end'] - action['chunk_start']
     read_bytes = 0
 
-    with open(os.path.join(path, "reads.fastq"), "wb") as f:
+    with open(os.path.join(path, "sequences.fasta"), "wb") as f:
         while read_bytes < size:
             data = await reader.read(4096)
             read_bytes += len(data)
@@ -86,25 +75,12 @@ async def perform_bwa(protocol, action):
 
     writer.close()
 
-    # Download reference genome
-    reader, writer = await asyncio.open_connection(
-        reference_genome_datanode['ip'], 5001)
+    with open(os.path.join(path, "msa_result.out"), "wb") as f:
+        # Run MAFFT with quick tree generation method
+        res = subprocess.run(["mafft", "--fastaparttree" "sequences.fasta"],
+                             stdout=f, stderr=subprocess.PIPE)
 
-    writer.write(str(
-        GetDataChunk(
-            file_path=reference_genome_datanode['path'],
-            chunk_start=0,
-            chunk_end=-1
-        )
-    ))
-
-    with open(os.path.join(path, "reference.fasta"), "wb") as f:
-        while True:
-            data = await reader.read(4096)
-
-            if not data:
-                break
-
-            f.write(data)
-
-    writer.close()
+        if res.returncode != 0:
+            raise Exception(
+                "MAFFT failed to run successfully: {}".format(res.stderr)
+            )

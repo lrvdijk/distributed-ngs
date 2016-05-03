@@ -32,14 +32,12 @@ class JobRequest(Action):
     job = Job
 
 
-class PerformBWAJob(Action):
+class PerformMAFFT(Action):
     __action__ = 'perform_bwa_job'
 
-    reads_data = int
+    sequences_data = int
     chunk_start = int
     chunk_end = int
-
-    reference_genome = int
 
 
 class GetAllDataLocs(Action):
@@ -90,6 +88,10 @@ class FindOffsetsFASTQ(Action):
     __action__ = 'find_offsets_fastq'
 
     file_path = str
+
+
+class FindOffsetsFASTA(Action):
+    __action__ = 'find_offsets_fasta'
 
 
 class ChunkOffsets(Action):

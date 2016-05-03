@@ -8,7 +8,7 @@ from sqlalchemy import func
 
 from digs.common.actions import (LocateData, JobRequest, GetAllDataLocs,
                                  RequestChunks, StoreData, StoreDataDone,
-                                 FindOffsetsFASTQ, ChunkOffsets, PerformBWAJob)
+                                 FindOffsetsFASTA, ChunkOffsets, PerformMAFFT)
 from digs.manager.db import Session
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob
 from digs.messaging import persistent
@@ -205,17 +205,14 @@ async def job_request(protocol, action):
     """This function splits a job in to multiple sub jobs and puts them in
     the worker queue."""
 
-    # TODO: Currently only BWA supported
-    assert action['job']['program_name'] == 'bwa'
+    # TODO: Currently only MAFFT supported
+    assert action['job']['program_name'] == 'mafft'
 
     # First, ask a data node what proper splitting offsets are
     session = Session()
 
-    file_id = action['reads']
-    data_file = session.query(Data).filter_by(id=file_id).first()
-
-    if not data_file:
-        raise IOError("File with id {} not found".format(file_id))
+    file_id = action['job']['sequences']
+    data_file = session.query(Data).get(id=file_id)
 
     reader, writer = None
     data_assoc = None
@@ -233,7 +230,7 @@ async def job_request(protocol, action):
         raise IOError("No available data node found for file id {}".format(
             file_id))
 
-    action = FindOffsetsFASTQ(file_path=data_assoc.file_path)
+    action = FindOffsetsFASTA(file_path=data_assoc.file_path)
     writer.write(str(action).encode())
     await writer.drain()
 
@@ -250,10 +247,9 @@ async def job_request(protocol, action):
     # For each chunk, create subtask in the queue for workers
     publisher = await persistent.create_publisher()
     for start, end in resp['offsets']:
-        action = PerformBWAJob(
-            reads_data=file_id, chunk_start=start, chunk_end=end,
-            reference_genome=action['reference_genome']
+        action = PerformMAFFT(
+            sequences_data=file_id, chunk_start=start, chunk_end=end
         )
 
         # TODO: LEss hardcoded exchanges and routing keys
-        await publisher.publish(str(action), "digs.messages", "jobs.bwa")
+        await publisher.publish(str(action), "digs.messages", "jobs.mafft")
