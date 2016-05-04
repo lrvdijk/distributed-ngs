@@ -33,7 +33,7 @@ def main():
     }
 
     rabbitmq_settings['host'] = get_random_central_server()
-    rabbitmq_settings['port'] = 5672
+    rabbitmq_settings['port'] = 25672
 
     loop = asyncio.get_event_loop()
     coro = persistent.create_persistent_listener(WorkerProtocol,

@@ -68,3 +68,14 @@ python3 add_test_data.py
 touch /testScriptDone
 
 #// listen_addresses='localhost' 
+
+# root@manager:/distributed/distributed-ngs# rabbitmqctl add_user comp_nodes nodes
+# Creating user "comp_nodes" ...
+# root@manager:/distributed/distributed-ngs# rabbitmqctl list_users               
+# Listing users ...
+# comp_nodes	[]
+# guest	[administrator]
+# root@manager:/distributed/distributed-ngs# rabbitmqctl list_vhosts
+# Listing vhosts ...
+# /
+# root@manager:/distributed/distributed-ngs# rabbitmqctl set_permissions -p / comp_nodes ".*" ".*" ".*"
