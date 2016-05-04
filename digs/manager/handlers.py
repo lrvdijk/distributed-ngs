@@ -4,7 +4,7 @@ import datetime
 from math import ceil
 from json import dumps
 
-from sqlalchemy import func
+from sqlalchemy import func, and_
 
 from digs.common.actions import (RegisterDataNode)
 from digs.manager.models import DataLoc, DataNode, Data, UploadJob, Status
@@ -28,19 +28,28 @@ async def register_data_node(protocol, action):
     """This function registers a new data node at the manager."""
     session = Session()
     logger.debug("register_data_node call: %r, %r", protocol, action)
-    datanode = DataNode(title="dataNode",
-                        ip=action['ip'],
-                        socket=action['socket'],
-                        free_space=action['free_space'],
-                        disk_space=action['disk_space'],
-                        root_path=action['root_path'],
-                        status=Status.ACTIVE,
-                        )
-    session.add(datanode)
-    session.commit()
 
-    results = {'succes': 'yes'}
-    result_str = 'register_data_node_succes ' + dumps(results)
+    data_node = session.query(DataNode).filter_by(ip=action['ip']).first()
+
+    if data_node is None:
+        datanode = DataNode(title="dataNode",
+                            ip=action['ip'],
+                            socket=action['socket'],
+                            free_space=action['free_space'],
+                            disk_space=action['disk_space'],
+                            root_path=action['root_path'],
+                            status=Status.ACTIVE,
+                            )
+        session.add(datanode)
+        session.commit()
+        results = {'succes': 'yes'}
+        result_str = 'register_data_node_succes ' + dumps(results)
+    else:
+        data_node.status = Status.ACTIVE
+        session.commit()
+        results = {'succes': 'Set status back on active'}
+        result_str = 'register_data_node_succes ' + dumps(results)
+
     await protocol.send_action(result_str)
 
 
@@ -153,7 +162,8 @@ async def locate_data(protocol, action):
         result_str = 'locate_data_err ' + dumps(result)
         await protocol.send_action(result_str)
         return
-    loc = session.query(DataNode).filter_by(id=data.data_node_id).first()
+    loc = session.query(DataNode).filter(and_(DataNode.id == data.data_node_id, DataNode.status == Status.ACTIVE))\
+        .first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
@@ -204,7 +214,8 @@ async def request_data_chunks(protocol, action):
     chunk_start = start
     for idx, row in enumerate(
             session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
-        loc = session.query(DataNode).filter_by(id=row.data_node_id).first()
+        loc = session.query(DataNode).filter(and_(DataNode.id == row.data_node_id, DataNode.status == Status.ACTIVE))\
+            .first()
         node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path,
                 'chunks': []}
         for j in range(0, chunk_per_loc):
@@ -241,7 +252,7 @@ async def job_request(protocol, action):
 
     reader, writer = None
     data_assoc = None
-    for assoc in data_file.data_nodes.order_by(func.random()):
+    for assoc in data_file.data_nodes.filter(DataNode.status == Status.ACTIVE).order_by(func.random()):
         try:
             # Try available data nodes until someone responds
             reader, writer = await asyncio.open_connection(assoc.data_node.ip,

@@ -145,7 +145,6 @@ async def create_persistent_listener(protocol_factory, *args, loop=None,
         rabbitmq_connection['protocol'] = protocol
 
     channel = await rabbitmq_connection['protocol'].channel()
-    channel.queue_declare("jobs.mafft")
 
     return PersistentListener(rabbitmq_connection['transport'],
                               rabbitmq_connection['protocol'], channel,
