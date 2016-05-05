@@ -114,6 +114,9 @@ class BaseSerializable:
 
         return self.values.get(item, None)
 
+    def __setitem__(self, key, value):
+        self.values[key] = value
+
 
 class Serializable(BaseSerializable, metaclass=SerializableMeta):
     """Combines the functionality of `BaseSerializable` and
