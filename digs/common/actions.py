@@ -104,6 +104,8 @@ class FindOffsetsFASTQ(Action):
 class FindOffsetsFASTA(Action):
     __action__ = 'find_offsets_fasta'
 
+    file_path = str
+
 
 class ChunkOffsets(Action):
     __action__ = 'chunk_offsets'

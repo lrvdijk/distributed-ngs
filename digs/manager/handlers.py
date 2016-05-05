@@ -260,6 +260,7 @@ async def job_request(protocol, action):
     reader = None
     writer = None
     data_loc = None
+    data_node = None
     data_locs = session.query(DataLoc).filter(DataLoc.data_id == data_file.id).order_by(func.random()).all()
     for assoc in data_locs:
         data_node = session.query(DataNode).filter(and_(DataNode.id == assoc.data_node_id,
@@ -278,7 +279,13 @@ async def job_request(protocol, action):
         raise IOError("No available data node found for file id {}".format(
             file_id))
 
-    action = FindOffsetsFASTA(file_path=data_loc.file_path)
+    file_path = data_node.root_path + "/" + data_loc.file_path
+    action = 'find_offsets_fasta '
+    data = {}
+    data['file_path'] = file_path
+    action = action + dumps(data) + '\n'
+    # action = FindOffsetsFASTA(file_path=file_path)
+    logger.debug("Sending action back: %s", str(action))
     writer.write(str(action).encode())
     await writer.drain()
 
