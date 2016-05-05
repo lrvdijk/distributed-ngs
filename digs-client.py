@@ -10,6 +10,7 @@ from digs.exc import ConfigurationError
 from digs.messaging import persistent
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class MAFFTJob(Job):
@@ -20,6 +21,8 @@ async def send_job_request(publisher):
     # Enter correct file ID for sequences data
     job = MAFFTJob(program_name='mafft', sequences=1)
     req = JobRequest(job=job)
+
+    logger.debug("Sending job: %s", req)
 
     return await publisher.publish(str(req), "digs.messages",
                                    "action.{}".format(req.action))

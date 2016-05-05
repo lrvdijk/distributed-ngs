@@ -28,9 +28,9 @@ async def perform_mafft(protocol, action):
     # reference genome
     reader, writer = await connect_to_random_central_server()
 
-    writer.send(str(
-        LocateData(search_by='file_id', term=action['sequences_dataset'])
-    ))
+    writer.write(str(
+        LocateData(search_by='file_id', term=action['sequences_data'])
+    ).encode())
     await writer.drain()
 
     data = await reader.readline()
@@ -57,7 +57,7 @@ async def perform_mafft(protocol, action):
             chunk_start=action['chunk_start'],
             chunk_end=action['chunk_end']
         )
-    ))
+    ).encode())
 
     size = action['chunk_end'] - action['chunk_start']
     read_bytes = 0

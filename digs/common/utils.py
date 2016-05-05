@@ -22,8 +22,9 @@ async def connect_to_random_central_server():
     server_settings = settings['servers']
     servers = [server_settings[key] for key in server_settings if
                key.startswith("central.server.")]
+    random.shuffle(servers)
 
-    for server in random.shuffle(servers):
+    for server in servers:
         try:
             return await asyncio.open_connection(server, 31415)
         except OSError:
