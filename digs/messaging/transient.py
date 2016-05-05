@@ -53,6 +53,7 @@ class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
 
     async def send_action(self, action):
         self._stream_writer.write(str(action).encode())
+        logger.debug("Wrote the following bytes: %s", str(action).encode())
         return await self._stream_writer.drain()
 
     async def process(self):

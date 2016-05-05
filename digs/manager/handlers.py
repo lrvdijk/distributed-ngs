@@ -163,6 +163,8 @@ async def locate_data(protocol, action):
 
     loc = session.query(DataNode).filter(and_(DataNode.id == data.data_node_id, DataNode.status == Status.ACTIVE)) \
         .first()
+
+    logger.debug("Location: %s", loc)
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
