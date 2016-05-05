@@ -2,7 +2,7 @@ import asyncio
 import logging
 import datetime
 from math import ceil
-from json import dumps
+from json import dumps, loads
 
 from sqlalchemy import func, and_
 
@@ -147,21 +147,18 @@ async def locate_data(protocol, action):
         if file is not None:
             file_id = file.id
     else:
-        message = "Cannot search for files using: " + action['search_by']
-        result = {'err': message}
-        result_str = 'locate_data_err ' + dumps(result)
-        await protocol.send_action(result_str)
-        return
+        raise IOError("Cannot search for files using {}".format(
+            action['search_by']
+        ))
 
     data = session.query(DataLoc).filter_by(data_id=file_id).order_by(
         func.random()).first()
+
+    logger.debug("Found data in DB: %s", data)
+
     if data is None:
-        message = ("Could not locate file using: " + action['search_by'] +
-                   " : " + action['term'])
-        result = {'err': message}
-        result_str = 'locate_data_err ' + dumps(result)
-        await protocol.send_action(result_str)
-        return
+        raise IOError("File with ID {} not found".format(file_id))
+
     loc = session.query(DataNode).filter(and_(DataNode.id == data.data_node_id, DataNode.status == Status.ACTIVE)) \
         .first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
@@ -294,7 +291,7 @@ async def job_request(protocol, action):
 
     resp = ChunkOffsets()
     assert parts[0] == resp.action
-    resp.load_from_json(parts[1])
+    resp.load_from_json(loads(parts[1].decode('utf-8')))
     writer.close()
 
     logger.debug("Got chunk offsets: %s", resp['offsets'])
