@@ -29,7 +29,7 @@ async def perform_mafft(protocol, action):
     reader, writer = await connect_to_random_central_server()
 
     writer.write(str(
-        LocateData(search_by='file_id', term=action['sequences_dataset'])
+        LocateData(search_by='file_id', term=action['sequences_data'])
     ))
     await writer.drain()
 
