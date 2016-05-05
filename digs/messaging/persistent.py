@@ -116,8 +116,10 @@ class PersistentListener:
         return await self.channel.basic_consume(self._on_message,
                                                 queue['queue'])
 
-    async def basic_consume(self, queue_name=''):
+    async def as_consumer(self, queue_name=''):
         await self.channel.queue_declare(queue_name, durable=True)
+        await self.channel.basic_qos(prefetch_count=1, prefetch_size=0,
+                                     connection_global=False)
         return await self.channel.basic_consume(self._on_message, queue_name)
 
     async def _on_message(self, channel, body, envelope, properties):

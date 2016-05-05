@@ -49,7 +49,7 @@ def main():
     coro = persistent.create_persistent_listener(WorkerProtocol,
                                                  **rabbitmq_settings)
     listener = loop.run_until_complete(coro)
-    loop.create_task(listener.basic_consume("jobs.mafft"))
+    loop.create_task(listener.as_consumer("jobs.mafft"))
     logger.info("Listening for jobs on queue jobs.mafft...")
 
     try:
