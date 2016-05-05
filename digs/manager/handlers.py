@@ -167,6 +167,8 @@ async def locate_data(protocol, action):
     result_str = 'locate_data_result ' + dumps(result)
     await protocol.send_action(result_str)
 
+    logger.debug("Sent locate_data result: {}", result_str)
+
 
 @transient_parser.register_handler(GetAllDataLocs)
 async def get_all_data_locs(protocol, action):
