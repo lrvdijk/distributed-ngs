@@ -85,6 +85,8 @@ class PersistentProtocol(BaseProtocol):
             logger.exception("Error while handling an action coming through "
                              "the persistent channel.")
 
+            self.channel.basic_reject(self.envelope.delivery_tag, requeue=True)
+
 
 class PersistentListener:
     def __init__(self, transport: asyncio.BaseTransport,
@@ -114,7 +116,8 @@ class PersistentListener:
         return await self.channel.basic_consume(self._on_message,
                                                 queue['queue'])
 
-    async def basic_consume(self, queue_name):
+    async def basic_consume(self, queue_name=''):
+        await self.channel.queue_declare(queue_name, durable=True)
         return await self.channel.basic_consume(self._on_message, queue_name)
 
     async def _on_message(self, channel, body, envelope, properties):
