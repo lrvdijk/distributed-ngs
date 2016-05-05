@@ -33,6 +33,7 @@ async def perform_mafft(protocol, action):
     ).encode())
     await writer.drain()
 
+    logger.debug("Waiting for locate_data result...")
     data = await reader.readline()
     logger.debug("Received data: %s", data)
     parts = data.decode().strip().split(maxsplit=1)
