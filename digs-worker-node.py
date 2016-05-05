@@ -50,7 +50,7 @@ def main():
                                                  **rabbitmq_settings)
     listener = loop.run_until_complete(coro)
     loop.create_task(listener.basic_consume("jobs.mafft"))
-    logger.
+    logger.info("Listening for jobs on queue jobs.mafft...")
 
     try:
         loop.run_forever()
