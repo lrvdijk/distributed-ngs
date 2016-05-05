@@ -8,7 +8,7 @@ This module provides some helper functions to manage files.
 import os
 import logging
 
-
+from json import dumps
 from digs.exc import InvalidChunkSizeError
 from digs.common.actions import GetDataChunk, FindOffsetsFASTQ, ChunkOffsets, \
     FindOffsetsFASTA
@@ -145,6 +145,8 @@ def _calculate_fasta_offsets(fh, chunk_size=64):
             if current_chunk_size >= chunk_size * 1024**2:
                 yield (current_chunk_start, pos)
                 current_chunk_start = pos
+    if current_chunk_start == 0:
+        yield (0, pos)
 
 
 @transient_parser.register_handler(FindOffsetsFASTA)
@@ -157,6 +159,10 @@ async def find_offsets_fasta(protocol, action):
 
     with open(file_path) as f:
         chunks = list(_calculate_fasta_offsets(f))
-
-        action = ChunkOffsets(offsets=chunks)
+        action = 'chunk_offsets '
+        data = {'offsets': chunks}
+        action = action + dumps(data) + '\n'
         await protocol.send_action(action)
+        # action = ChunkOffsets()
+        # action['offsets']=chunks
+        # await protocol.send_action(action)
