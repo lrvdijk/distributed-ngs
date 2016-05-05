@@ -12,13 +12,13 @@ from digs.messaging import persistent
 logging.basicConfig(level=logging.INFO)
 
 
-class BWAJob(Job):
-    reference_genome = int
-    reads = int
+class MAFFTJob(Job):
+    sequences = int
 
 
 async def send_job_request(publisher):
-    job = BWAJob(program_name='bwa', reference_genome=1, reads=1)
+    # Enter correct file ID for sequences data
+    job = MAFFTJob(program_name='mafft', sequences=1)
     req = JobRequest(job=job)
 
     return await publisher.publish(str(req), "digs.messages",
