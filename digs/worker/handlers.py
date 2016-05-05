@@ -28,7 +28,7 @@ async def perform_mafft(protocol, action):
     # reference genome
     reader, writer = await connect_to_random_central_server()
 
-    writer.send(str(
+    writer.write(str(
         LocateData(search_by='file_id', term=action['sequences_dataset'])
     ))
     await writer.drain()
