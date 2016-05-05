@@ -246,6 +246,7 @@ async def job_request(protocol, action):
 
     # For each chunk, create subtask in the queue for workers
     publisher = await persistent.create_publisher()
+    publisher.channel.queue_declare('jobs.mafft', durable=True)
     for start, end in resp['offsets']:
         action = PerformMAFFT(
             sequences_data=file_id, chunk_start=start, chunk_end=end
