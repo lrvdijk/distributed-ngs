@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import datetime
+
+from pprint import pprint
 from math import ceil
 from json import dumps, loads
 
@@ -288,9 +290,9 @@ async def job_request(protocol, action):
 
     response = await reader.readline()
     parts = response.strip().split(maxsplit=1)
-
+    logger.debug("Printing parts: %s",parts)
     resp = ChunkOffsets()
-    assert parts[0] == resp.action
+    assert parts[0].decode('utf-8') == resp.action
     resp.load_from_json(loads(parts[1].decode('utf-8')))
     writer.close()
 
