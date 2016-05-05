@@ -35,7 +35,7 @@ async def perform_mafft(protocol, action):
 
     data = await reader.readline()
     logger.debug("Received data: %s", data)
-    parts = data.encode().strip().split(maxsplit=1)
+    parts = data.decode().strip().split(maxsplit=1)
     logger.debug("Parts received: %s", parts)
 
     assert parts[0] == 'locate_data_result'
