@@ -295,7 +295,6 @@ async def job_request(protocol, action):
     parts = response.strip().split(maxsplit=1)
     logger.debug("Printing parts: %s",parts)
     resp = ChunkOffsets()
-    logger.debug(resp.action)
     assert parts[0].decode('utf-8') == resp.action
     resp.load_from_json(loads(parts[1].decode('utf-8')))
     writer.close()

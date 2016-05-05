@@ -159,10 +159,10 @@ async def find_offsets_fasta(protocol, action):
 
     with open(file_path) as f:
         chunks = list(_calculate_fasta_offsets(f))
-        action = 'chunk_offsets '
-        data = {'offsets': chunks}
-        action = action + dumps(data) + '\n'
-        await protocol.send_action(action)
-        # action = ChunkOffsets()
-        # action['offsets']=chunks
+        # action = 'chunk_offsets '
+        # data = {'offsets': chunks}
+        # action = action + dumps(data) + '\n'
         # await protocol.send_action(action)
+        action = ChunkOffsets()
+        action['offsets']=chunks
+        await protocol.send_action(action)
