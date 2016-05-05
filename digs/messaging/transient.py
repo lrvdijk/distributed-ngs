@@ -74,6 +74,7 @@ class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
 
                 logger.debug("Scheduling handler %r", handler)
                 await handler(self, action)
+                logger.debug("finished processing %r", handler)
             except (KeyboardInterrupt, asyncio.CancelledError):
                 logger.debug("Processing task cancelled.")
                 break
