@@ -293,7 +293,7 @@ async def job_request(protocol, action):
     parts = response.strip().split(maxsplit=1)
 
     resp = ChunkOffsets()
-    assert parts[0] == resp.__action__
+    assert parts[0] == resp.action
     resp.load_from_json(parts[1])
     writer.close()
 
