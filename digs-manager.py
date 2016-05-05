@@ -1,3 +1,4 @@
+import socket
 import argparse
 import asyncio
 import logging
@@ -81,7 +82,8 @@ def main():
     persistent_listener = loop.run_until_complete(coro)
     loop.create_task(persistent_listener.listen_for_topic(
         "digs.messages", "action.*", 'central_queue'))
-    coro = loop.create_server(ManagerTransientProtocol, hostname, port)
+    coro = loop.create_server(ManagerTransientProtocol, hostname, port,
+                              family=socket.AF_INET)
     server = loop.run_until_complete(coro)
 
     print("Serving on {}".format(server.sockets[0].getsockname()))
