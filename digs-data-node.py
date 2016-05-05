@@ -21,6 +21,10 @@ def main():
         '-p', '--port', type=int, default=5001,
         help="Port to listen on, default 5001"
     )
+    parser.add_argument(
+        '-d', '--debug', action="store_true", default=False,
+        help="Enable debug mode."
+    )
 
     args = parser.parse_args()
 

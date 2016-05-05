@@ -162,7 +162,7 @@ async def locate_data(protocol, action):
         result_str = 'locate_data_err ' + dumps(result)
         await protocol.send_action(result_str)
         return
-    loc = session.query(DataNode).filter(and_(DataNode.id == data.data_node_id, DataNode.status == Status.ACTIVE))\
+    loc = session.query(DataNode).filter(and_(DataNode.id == data.data_node_id, DataNode.status == Status.ACTIVE)) \
         .first()
     result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
@@ -214,7 +214,7 @@ async def request_data_chunks(protocol, action):
     chunk_start = start
     for idx, row in enumerate(
             session.query(DataLoc).filter_by(data_id=action['file_id']).all()):
-        loc = session.query(DataNode).filter(and_(DataNode.id == row.data_node_id, DataNode.status == Status.ACTIVE))\
+        loc = session.query(DataNode).filter(and_(DataNode.id == row.data_node_id, DataNode.status == Status.ACTIVE)) \
             .first()
         node = {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path,
                 'chunks': []}
@@ -248,25 +248,37 @@ async def job_request(protocol, action):
     session = Session()
 
     file_id = action['job']['sequences']
-    data_file = session.query(Data).get(id=file_id)
+    data_file = session.query(Data).filter_by(id=file_id).first()
 
-    reader, writer = None
-    data_assoc = None
-    for assoc in data_file.data_nodes.filter(DataNode.status == Status.ACTIVE).order_by(func.random()):
+    if data_file is None:
+        message = ("Could not locate file using file id: " + str(file_id))
+        result = {'err': message}
+        result_str = 'job_request_err ' + dumps(result)
+        await protocol.send_action(result_str)
+        return
+
+    reader = None
+    writer = None
+    data_loc = None
+    data_locs = session.query(DataLoc).filter(DataLoc.data_id == data_file.id).order_by(func.random()).all()
+    for assoc in data_locs:
+        data_node = session.query(DataNode).filter(and_(DataNode.id == assoc.data_node_id,
+                                                        DataNode.status == Status.ACTIVE)).first()
         try:
             # Try available data nodes until someone responds
-            reader, writer = await asyncio.open_connection(assoc.data_node.ip,
+            reader, writer = await asyncio.open_connection(data_node.ip,
                                                            5001)
-            data_assoc = assoc
+            data_loc = assoc
             break
         except OSError:
-            reader, writer = None
+            reader = None
+            writer = None
 
-    if reader is None and writer is None:
+    if reader is None or writer is None:
         raise IOError("No available data node found for file id {}".format(
             file_id))
 
-    action = FindOffsetsFASTA(file_path=data_assoc.file_path)
+    action = FindOffsetsFASTA(file_path=data_loc.file_path)
     writer.write(str(action).encode())
     await writer.drain()
 

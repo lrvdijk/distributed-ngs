@@ -24,6 +24,7 @@ class Announce(Action):
 
 class Job(Serializable):
     program_name = str
+    sequences = int
 
 
 class JobRequest(Action):

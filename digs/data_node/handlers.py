@@ -103,6 +103,7 @@ async def find_offsets_fastq(protocol, action):
     """Determine sensible byte offsets for splitting up a fastq file,
     while maintaining the records."""
 
+    logger.debug("Get chunks call: %r, %r", protocol, action)
     file_path = action['file_path']
 
     with open(file_path) as f:

@@ -31,9 +31,8 @@ def main():
         key.replace("rabbitmq.", ""): worker_settings[key]
         for key in worker_settings if key.startswith("rabbitmq.")
     }
-
     rabbitmq_settings['host'] = get_random_central_server()
-    rabbitmq_settings['port'] = 25672
+    rabbitmq_settings['port'] = 5672
 
     loop = asyncio.get_event_loop()
     coro = persistent.create_persistent_listener(WorkerProtocol,

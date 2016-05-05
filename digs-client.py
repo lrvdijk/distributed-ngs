@@ -60,7 +60,6 @@ def main():
     }
 
     rabbitmq_settings['host'] = get_random_central_server()
-    rabbitmq_settings['port'] = 5672
 
     coro = persistent.create_publisher(**rabbitmq_settings)
     publisher = loop.run_until_complete(coro)
