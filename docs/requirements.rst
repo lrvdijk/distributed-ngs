@@ -35,9 +35,9 @@ or locally align them, assemble a new genome from the individual reads, or
 check if this newly sequenced genome has any variant genes compared to the 
 reference.
 
-Most of these operations can take a lot of time, but due to the nature of the 
-sequencing experiment (you get a lot of independent reads), it is possible to 
-perform a lot of steps at the same time, but on different chunks of the data. 
+Most of these operations are computational expensive, but due to the nature of the
+sequencing experiment (you get a lot of independent reads), it is possible to
+parallelize the experiments into smaller chunks on the data.
 Building a scalable distributed system for these kinds of pipelines could 
 reduce the computational time significantly.
 
