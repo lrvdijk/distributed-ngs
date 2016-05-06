@@ -4,27 +4,47 @@ Introduction
 
 In the past few years sequencing the genome has become a lot cheaper, due to
 next generation sequencing techniques. It is now a lot more viable to sequence
-the genome of a patient, and for example compare it to a known reference
+the genome of an organism, and for example compare it to a known reference
 genome. The human genome consists of three billion base pairs, and some plant
-genomes are sometimes an order of magnitude larger. So we are dealing with a
-huge amount of data, and the algorithms for mapping short reads on the
-reference genome, alignment, or de novo genome assembly can be quite
-computationally heavy. Furthermore, if you have mapped your reads to a
-reference genome, you will probably want to perform several kinds of analysis
-on your newly sequenced genome, for example check if there are any genes
-different compared to the reference.
+genomes are sometimes an order of magnitude larger. 
 
-Because you retrieve a lot of individual short reads from your sequencing step,
-you can map and align these reads independently to a reference genome. Leading to
-a lot of possibilities for parallelization. The idea is to
-build a distributed system to handle this next generation
-sequencing pipeline, to perform some of this assembly and mapping algorithms in
-parallel, distributed over a set of "computational super nodes". This also
-brings the challenge to efficiently manage the corresponding datasets.
-Decap et al. already built a similar system using Hadoop [decap2015halvade]_.
+This data avalanche provides a lot of opportunities for biological problems. 
+But the amount of data is huge and a lot of operations are computationally 
+expensive. Luckily, these operations are often quite easily executed in 
+parallel. A few examples are discussed in the following sections.
 
-In this assignment we will focus on the distributed system, and initially only
-implement a subset of the steps instead of the whole NGS pipeline.
+Next Generation Sequencing
+==========================
+
+A typical NGS pipeline consists of the following steps:
+
+1. A genome sequencing machine produces a lot of independent short reads 
+   (around 200 base pair) originating from random locations of a new genome.
+2. Try to map these reads to a known reference genome
+3. Determine variant genes in the newly sequenced genome
+
+These short reads can be independently mapped to a reference genome, which 
+makes it easy to distribute these reads across multiple workers. Decap et al. 
+built a distributed system based on Hadoop [decap2015halvade]_.
+
+Multiple Sequence Alignment/Phylogeny
+=====================================
+
+If you have a lot of genome or protein sequences, you can try to match each 
+sequence to each other, a process called alignment. If you have a collection of
+aligned sequences, you can calculate the distance between each combination of 
+sequences, and from there you can generate a phylogenetic tree. 
+
+This process of multiple sequence alignment and distance calculation can also 
+be quite easily performed in parallel, although it requires a merge step at the
+end.
+
+A Distributed System For Bioinformatics
+=======================================
+
+We would like to design a system which can run bioinformatics software easily 
+on multiple workers. To bound our project a bit, we will focus on the multiple 
+sequence alignment problem. 
 
 .. [decap2015halvade] 
    Decap, D., Reumers, J., Herzeel, C., Costanza, P., & Fostier, J. (2015). Halvade: scalable sequence analysis with MapReduce. *Bioinformatics*, 31(15), 2482-2488.
