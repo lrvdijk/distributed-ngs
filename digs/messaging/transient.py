@@ -66,6 +66,11 @@ class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
             try:
                 logger.debug("Awaiting data...")
                 data = await self._stream_reader.readline()
+
+                if not data:
+                    self.eof_received()
+                    break
+
                 logger.debug("process(): data %s", data)
 
                 if len(data.strip()) == 0:
