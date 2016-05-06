@@ -15,9 +15,10 @@ def main():
     str1 = str1 + json.dumps(data) + '\n'
     print(str1)
 
-    if len(sys.argv) == 2:
-        host = sys.argv[0]
-        port = int(sys.argv[1])
+    print(sys.argv)
+    if len(sys.argv) == 3:
+        host = sys.argv[1]
+        port = int(sys.argv[2])
     else:
         host = "127.0.0.1"
         port = 31415
