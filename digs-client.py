@@ -19,7 +19,7 @@ class MAFFTJob(Job):
 
 async def send_job_request(publisher):
     # Enter correct file ID for sequences data
-    job = MAFFTJob(program_name='mafft', sequences=1)
+    job = MAFFTJob(program_name='mafft', sequences=2)
     req = JobRequest(job=job)
 
     logger.debug("Sending job: %s", req)
