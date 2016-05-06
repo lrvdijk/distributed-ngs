@@ -46,5 +46,11 @@ We would like to design a system which can run bioinformatics software easily
 on multiple workers. To bound our project a bit, we will focus on the multiple 
 sequence alignment problem. 
 
+The program we use for multiple sequence alignment is called MAFFT [mafft]_, 
+and for this project we want to run this program in a distributed manner. It 
+supports both  multiple sequence alignments on genome nucleotide or protein 
+amino acid sequences. We have chosen this tool because it is simple to
+use, and easily run in parallel. 
+
 .. [decap2015halvade] 
    Decap, D., Reumers, J., Herzeel, C., Costanza, P., & Fostier, J. (2015). Halvade: scalable sequence analysis with MapReduce. *Bioinformatics*, 31(15), 2482-2488.

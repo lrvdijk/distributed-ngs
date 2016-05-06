@@ -218,8 +218,10 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
+'preamble': r"""
+\pagestyle{plain}
+\pagenumbering{arabic}
+""",
 # Latex figure (float) alignment
 #'figure_align': 'htbp',
 }
@@ -228,8 +230,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Digs.tex', 'Digs: Distributed Next Generation Sequencing',
-     r'Tycho Marinus \textless{}main@tmarinus.nl\textgreater{},\\ Lucas van Dijk \textless{}info@return1.net\textgreater{}', 'howto'),
+    (master_doc, 'Digs.tex', 'Digs: Distributed Bioinformatics',
+     r'Tycho Marinus \and Lucas van Dijk', 'howto'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

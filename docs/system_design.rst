@@ -33,9 +33,9 @@ Central managers store a lot of metadata, and the idea is to replicate this
 data on all central managers. This data is stored in a PostgreSQL database, and
 using pgPool-II [pgpool]_ it is possible to setup the replication system. The 
 persistent messaging middleware also runs on the central manager, and in our 
-case we use RabbitMQ as our message queue. RabbitMQ has built in functionality 
-to share message queues across multiple nodes, and keep those queues 
-consistent. 
+case we use RabbitMQ [rabbitmq]_ as our message queue. RabbitMQ has built in 
+functionality to share message queues across multiple nodes, and keep those 
+queues consistent. 
 
 We assume all nodes will be located in the same data center (it is a 
 distributed system for a single company or research group), and therefore the 
@@ -143,8 +143,9 @@ Performing a subtask
 4. The worker starts the program, and when finished stores the results back on
    the data node.
 
-Currently, the program is always MAFFT, which can quickly calculate a multiple 
-sequence alignment for large collections of genomes. It also supports merging
+Currently, the program is always MAFFT [mafft]_, which can quickly calculate a 
+multiple sequence alignment for large collections of genomes. It also supports 
+merging
 independent alignments to a single alignment, which is useful to merge all
 results calculated by workers to a single alignment result.
 
@@ -158,3 +159,12 @@ node, and acknowledges the completion of a subtask to the RabbitMQ server.
 
 .. [pgpool]
     pgPool-II, a PostgreSQL middleware. Available: http://pgpool.net
+
+.. [rabbitmq]
+    RabbitMQ: robust messaging for applications. Available: 
+    https://rabbitmq.com
+
+.. [mafft]
+    Katoh, Kazutaka, and Daron M. Standley. "MAFFT multiple sequence alignment 
+    software version 7: improvements in performance and usability." *Molecular 
+    biology and evolution* 30.4 (2013): 772-780.
