@@ -164,6 +164,7 @@ async def locate_data(protocol, action):
         .first()
 
     logger.debug("Location: %s", loc)
+
     result = {'ip': loc.ip, 'socket': loc.socket,
               'path': loc.root_path + '/' + data.file_path}
     result_str = 'locate_data_result {}\n'.format(dumps(result))

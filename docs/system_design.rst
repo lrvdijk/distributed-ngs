@@ -23,9 +23,9 @@ An overview of the system can be seen in :numref:`fig-overview`.
 Central Managers
 ================
 
-The central managers are the most intelligent nodes of the system, and try to 
+The central managers are the most intelligent nodes of the system, it's job is to
 coordinate the whole NGS pipeline. Central managers keep track which datasets 
-are stored on which data nodes, the handle the request to perform some analysis
+are stored on which data nodes, and handle the client requests for analysis
 on a dataset. 
 
 Central managers store a lot of metadata, and the idea is to replicate this 
@@ -43,15 +43,15 @@ Data Nodes
 ==========
 
 All datasets are stored on dedicated "data nodes". To prevent any data loss, 
-and to retain high availability of the data, the central manager makes sure 
-that each dataset is stored on two different nodes. Clients upload their data 
-directly to the data node, but ask a central manager first which data node is 
-suitable (enough disk space, other criteria).
+and to retain high availability/access of the data, the central manager makes sure
+that each dataset is stored on multiple different nodes. Clients communicate with
+the central manager about where to store initial new data, however the transfer is
+done directly from client to data node to not unnecessary increase data transfers.
 
-Besides being a simple distributed file system, it also provides some more 
-intelligent functionality: it parses the file to determine proper byte offsets 
-to split a file in multiple chunks, while maintaining the structure in the 
-data. 
+Data nodes are simple distributed file system, but they also provides some more
+intelligent functionality. Calculating proper byte offsets when taking chunks of a
+dataset is done locally by the data node. This again is done to limit the amount of
+large data transfers.
 
 Computational Worker Nodes
 ==========================
@@ -88,8 +88,7 @@ Upload Dataset
 
 A schematic overview can be seen in :numref:`fig-upload`. All this 
 communication is transient: it only makes sense to transfer the data if the 
-data node is available, and otherwise you would need to store a dataset of 
-several GB's somewhere.
+data node is available.
 
 .. _fig-upload:
 

@@ -4,7 +4,7 @@ Introduction
 
 In the past few years sequencing the genome has become a lot cheaper, due to
 next generation sequencing techniques. It is now a lot more viable to sequence
-the genome of a new patient, and for example compare it to a known reference
+the genome of a patient, and for example compare it to a known reference
 genome. The human genome consists of three billion base pairs, and some plant
 genomes are sometimes an order of magnitude larger. So we are dealing with a
 huge amount of data, and the algorithms for mapping short reads on the
@@ -15,8 +15,8 @@ on your newly sequenced genome, for example check if there are any genes
 different compared to the reference.
 
 Because you retrieve a lot of individual short reads from your sequencing step,
-you can map and align these reads independently to a reference genome. Thus,
-there are lot of possibilities for parallel computation. The idea is now to
+you can map and align these reads independently to a reference genome. Leading to
+a lot of possibilities for parallelization. The idea is to
 build a distributed system to handle this next generation
 sequencing pipeline, to perform some of this assembly and mapping algorithms in
 parallel, distributed over a set of "computational super nodes". This also
