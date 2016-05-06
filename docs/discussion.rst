@@ -27,7 +27,10 @@ One concern for the scalability could be the consistency management of all
 managers, the data needs to be replicated on each manager. We do not think this 
 will become an issue very quickly, because most actions on the manager are read
 operations (where is this dataset located?), and if there is a write operation,
-it is often a small one (only metadata).
+it is often a small one (only metadata). Furthermore, we think it is not likely
+that one would need more than three managers, and therefore the replication
+slowdown is probably relatively small. This should be confirmed with further
+experiments.
 
 Performance
 ===========
