@@ -80,7 +80,7 @@ async def perform_mafft(protocol, action):
     with open(os.path.join(path, "msa_result.out"), "wb") as f:
         # Run MAFFT with quick tree generation method
         seq_path = os.path.join(path, "sequences.fasta")
-        res = subprocess.run(["mafft", "--fastaparttree", seq_path],
+        res = subprocess.run(["mafft", "--parttree", seq_path],
                              stdout=f, stderr=subprocess.PIPE)
 
         if res.returncode != 0:
