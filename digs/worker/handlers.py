@@ -69,6 +69,17 @@ async def perform_mafft(protocol, action):
     with open(os.path.join(path, "sequences.fasta"), "wb") as f:
         while read_bytes < size:
             data = await reader.read(4096)
+
+            if data.startswith(b"error"):
+                message = data.decode()
+
+                _, error_data = message.split(" ", maxsplit=1)
+                error_data = json.loads(error_data)
+                raise IOError(
+                    "{} - error while retrieving data file: {}".format(
+                        error_data['kind'], error_data['message']
+                    ))
+
             read_bytes += len(data)
 
             if not data:
