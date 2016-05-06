@@ -50,6 +50,8 @@ async def perform_mafft(protocol, action):
     path = os.path.join("jobs", str(job_id))
     os.makedirs(path, exist_ok=True)
 
+    logger.debug("Starting job with ID %s", job_id)
+
     # Download reads data chunk
     reader, writer = await asyncio.open_connection(sequences_datanode['ip'],
                                                    5001)
