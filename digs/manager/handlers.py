@@ -32,7 +32,6 @@ async def register_data_node(protocol, action):
     logger.debug("register_data_node call: %r, %r", protocol, action)
 
     data_node = session.query(DataNode).filter_by(ip=action['ip']).first()
-
     if data_node is None:
         datanode = DataNode(title="dataNode",
                             ip=action['ip'],
@@ -45,12 +44,12 @@ async def register_data_node(protocol, action):
         session.add(datanode)
         session.commit()
         results = {'succes': 'yes'}
-        result_str = 'register_data_node_succes ' + dumps(results)
+        result_str = 'register_data_node_succes {}\n'.format(dumps(results))
     else:
         data_node.status = Status.ACTIVE
         session.commit()
         results = {'succes': 'Set status back on active'}
-        result_str = 'register_data_node_succes ' + dumps(results)
+        result_str = 'register_data_node_succes {}\n'.format(dumps(results))
 
     await protocol.send_action(result_str)
 
@@ -98,7 +97,7 @@ async def store_data(protocol, action):
         session.commit()
 
     result = {'ip': loc.ip, 'socket': loc.socket, 'upload_path': loc.root_path}
-    result_str = 'locate_data_result ' + dumps(result)
+    result_str = 'locate_data_result {}\n'.format(dumps(result))
     await protocol.send_action(result_str)
 
 
@@ -165,8 +164,9 @@ async def locate_data(protocol, action):
         .first()
 
     logger.debug("Location: %s", loc)
-    result = {'ip': loc.ip, 'socket': loc.socket, 'path': loc.root_path + '/' + data.file_path}
-    result_str = 'locate_data_result ' + dumps(result)
+    result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
+    result_str = 'locate_data_result {}\n'.format(dumps(result))
+
     logger.debug("Sent locate_data result: %s", result_str)
     await protocol.send_action(result_str)
 
@@ -186,7 +186,7 @@ async def get_all_data_locs(protocol, action):
         results.append(
             {'ip': loc.ip, 'socket': loc.socket, 'path': row.file_path})
 
-    result_str = 'locate_data_results ' + dumps(results)
+    result_str = 'locate_data_results {}\n'.format(dumps(results))
     print(protocol)
     await protocol.send_action(result_str)
 
@@ -234,7 +234,8 @@ async def request_data_chunks(protocol, action):
         chunk_requests.append(node)
 
     logger.debug(chunk_requests)
-    result_str = 'request_data_chunks_results ' + dumps(chunk_requests)
+    result_str = 'request_data_chunks_results {}\n'.format(dumps(
+        chunk_requests))
     await protocol.send_action(result_str)
 
 
