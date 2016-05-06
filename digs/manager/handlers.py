@@ -165,13 +165,10 @@ async def locate_data(protocol, action):
         .first()
 
     logger.debug("Location: %s", loc)
-    result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
+    result = {'ip': loc.ip, 'socket': loc.socket, 'path': loc.root_path + '/' + data.file_path}
     result_str = 'locate_data_result ' + dumps(result)
-    protocol._stream_writer.write(result_str.encode())
-    await protocol._stream_writer.drain()
-    # await protocol.send_action(result_str)
-
     logger.debug("Sent locate_data result: %s", result_str)
+    await protocol.send_action(result_str)
 
 
 @transient_parser.register_handler(GetAllDataLocs)
