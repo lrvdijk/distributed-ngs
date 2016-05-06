@@ -64,6 +64,7 @@ class TransientProtocol(asyncio.StreamReaderProtocol, BaseProtocol):
         # connections idle for some time.
         while True:
             try:
+                logger.debug("Awaiting data...")
                 data = await self._stream_reader.readline()
 
                 if not data:
