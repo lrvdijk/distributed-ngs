@@ -164,7 +164,8 @@ async def locate_data(protocol, action):
         .first()
 
     logger.debug("Location: %s", loc)
-    result = {'ip': loc.ip, 'socket': loc.socket, 'path': data.file_path}
+    result = {'ip': loc.ip, 'socket': loc.socket,
+              'path': loc.root_path + '/' + data.file_path}
     result_str = 'locate_data_result {}\n'.format(dumps(result))
     await protocol.send_action(result_str)
 
@@ -254,11 +255,7 @@ async def job_request(protocol, action):
     data_file = session.query(Data).filter_by(id=file_id).first()
 
     if data_file is None:
-        message = ("Could not locate file using file id: " + str(file_id))
-        result = {'err': message}
-        result_str = 'job_request_err ' + dumps(result)
-        await protocol.send_action(result_str)
-        return
+        raise Exception("File with ID {} does not exists!".format(file_id))
 
     reader = None
     writer = None
