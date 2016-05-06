@@ -60,6 +60,8 @@ async def get_data_chunk(protocol, action):
 
         await protocol._stream_writer.drain()
 
+    protocol._stream_writer.close()
+
 
 def _calculate_fastq_offsets(fh, chunk_size=64):
     """Parses a FASTQ file and determines proper splitting byte offsets,
