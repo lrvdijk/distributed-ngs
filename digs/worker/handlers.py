@@ -50,6 +50,8 @@ async def perform_mafft(protocol, action):
     path = os.path.join("jobs", str(job_id))
     os.makedirs(path, exist_ok=True)
 
+    logger.debug("Starting job with ID %s", job_id)
+
     # Download reads data chunk
     reader, writer = await asyncio.open_connection(sequences_datanode['ip'],
                                                    5001)
@@ -67,6 +69,17 @@ async def perform_mafft(protocol, action):
     with open(os.path.join(path, "sequences.fasta"), "wb") as f:
         while read_bytes < size:
             data = await reader.read(4096)
+
+            if data.startswith(b"error"):
+                message = data.decode()
+
+                _, error_data = message.split(" ", maxsplit=1)
+                error_data = json.loads(error_data)
+                raise IOError(
+                    "{} - error while retrieving data file: {}".format(
+                        error_data['kind'], error_data['message']
+                    ))
+
             read_bytes += len(data)
 
             if not data:
@@ -79,7 +92,8 @@ async def perform_mafft(protocol, action):
 
     with open(os.path.join(path, "msa_result.out"), "wb") as f:
         # Run MAFFT with quick tree generation method
-        res = subprocess.run(["mafft", "--fastaparttree", "sequences.fasta"],
+        seq_path = os.path.join(path, "sequences.fasta")
+        res = subprocess.run(["mafft", "--parttree", seq_path],
                              stdout=f, stderr=subprocess.PIPE)
 
         if res.returncode != 0:
